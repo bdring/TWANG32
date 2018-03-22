@@ -13,12 +13,19 @@ This was ported from the [TWANG fork](https://github.com/bdring/TWANG) by bdring
 - DAC pins for better sound capabilities.
 - Wifi and Bluetooth.
 
-The current state of the code is a basic port of the Arduino version. Several of the libraries did not work, so ESP32 versions are included in the code.
+**Current State**
+
+- All of the Arduino version game features are functional. 
+- There is a serial port based setup feature, but the **EEPROM saving crashes randomly**. It does not affect game play, so I am leaving it in. **Help me fix this!**
+- The game now has a wifi access port to get game stats. Connect a smartphone or computer to see them. Due to the EEPROM saving bug, thee stats reset often :-(
+  - **SSID:** TWANG_AP
+  - **Password:** esp32rocks
+  - **URL:** 192.168.4.1
 
 **Coming Soon:**
 
 -  Wireless features
-  - A wireless version of the serial port features of TWANG. I think the easiest way is to make it a Wifi access point with a simple web page interface. This allows control by any smartphone or computer with no client side work required.
+  - ~~A wireless version of the serial port features of TWANG. I think the easiest way is to make it a Wifi access point with a simple web page interface. This allows control by any smartphone or computer with no client side work required.~~
   - 2 Player features by linking controllers. TBD
 -  Digitized Audio
   -  Currently the port uses the same square wave tones of the the Arduino version.
@@ -96,11 +103,10 @@ They all call different functions and variables to setup the level. Each one is 
 * offtime: How long the lava is ON for
 * offset: How long (ms) after the level starts before the lava turns on, use this to create patterns with multiple lavas
 
-**spawnConveyor(startPoint, endPoint, direction);** (2 conveyors max)
+**spawnConveyor(startPoint, endPoint, speed);** (2 conveyors max)
 * startPoint, endPoint: Same as lava
-* direction: The direction and speed of the travel. Negative moves to base and positive moves towards exit. Must be less than +/- max player speed.
+* speed: The direction and speed of the travel. Negative moves to base and positive moves towards exit. Must be less than +/- max player speed.
 
 **spawnBoss(); ** (only one, don't edit boss level)
 * There are no parameters for a boss, they always spawn in the same place and have 3 lives. Tweak the values of Boss.h to modify
 
-Feel free to edit, comment on the YouTube video (link at top) if you have any questions.
