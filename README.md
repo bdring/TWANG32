@@ -16,8 +16,7 @@ This was ported from the [TWANG fork](https://github.com/bdring/TWANG) by bdring
 **Current State**
 
 - All of the Arduino version game features are functional. 
-- There is a serial port based setup feature, but the **EEPROM saving crashes randomly**. It does not affect game play, so I am leaving it in. **Help me fix this!**
-- The game now has a wifi access port to get game stats. Connect a smartphone or computer to see them. Due to the EEPROM saving bug, thee stats reset often :-(
+- The game now has a wifi access port to get game stats. Connect a smartphone or computer to see them.
   - **SSID:** TWANG_AP
   - **Password:** esp32rocks
   - **URL:** 192.168.4.1
