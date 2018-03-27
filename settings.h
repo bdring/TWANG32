@@ -2,6 +2,7 @@
 	#define SETTINGS_H
 
 #include <EEPROM.h>
+#include "sound.h"
 
 // change this whenever the saved settings are not compatible with a change
 // It forces a reset from defaults.
@@ -22,7 +23,7 @@ const uint8_t LIVES_PER_LEVEL = 3;      // default lives per level
 #define JOYSTICK_DEADZONE    8     // Angle to ignore
 
 // AUDIO
-#define MAX_VOLUME          5     // 0 to 255
+#define MAX_VOLUME          180     // 0 to 255
 #define DAC_AUDIO_PIN 		25     // should be 25 or 26 only
 
 enum ErrorNums{
@@ -108,6 +109,9 @@ void processSerial(char inChar)
 			case 'R':
 				readIndex = 0;
 				reset_settings();
+				settings_eeprom_write();
+				delay(1000);
+				ESP.restart();
 				return;
 			break;
 			
@@ -116,18 +120,9 @@ void processSerial(char inChar)
 				user_settings.total_points = 0;
 				user_settings.high_score = 0;	
 				user_settings.boss_kills = 0;
-				return;
-			break;
-			
-			case '!':
-				ESP.restart();
-			break;
-			
-			case 'E':
 				settings_eeprom_write();
-				delay(1000);
 				return;
-			break;
+			break;		
 			
 			default:
 			
@@ -163,7 +158,7 @@ void change_setting(char *line) {
   char setting_val[6];
   char param;
   uint16_t newValue;
-  Serial.print("Read Buffer: "); Serial.println(readBuffer);
+  //Serial.print("Read Buffer: "); Serial.println(readBuffer); 
   
   if (readBuffer[1] != '='){  // check if the equals sign is there
 	Serial.print("Missing '=' in command");
@@ -192,8 +187,12 @@ void change_setting(char *line) {
   
   switch (param) {
 	case 'B': // brightness
-		if(newValue >=5 && newValue <=255)
+		if(newValue >=5 && newValue <=255) {
 			user_settings.led_brightness = (uint8_t)newValue;
+			settings_eeprom_write();
+			delay(1000);
+			ESP.restart();  // this one requires a restart right now
+		}
 		else {			
 			printError(ERR_SETTING_RANGE);
 			return;
@@ -242,7 +241,7 @@ void change_setting(char *line) {
 		return;
 	break;
 	
-  }
+  } 
   
   show_settings_menu();
 }
@@ -276,7 +275,7 @@ void show_settings_menu() {
 	
 	Serial.print("\r\nB=");	
 	Serial.print(user_settings.led_brightness);
-	Serial.println(" (LED Brightness 5-255)");
+	Serial.println(" (LED Brightness 5-255..forces restart)");
 	
 	Serial.print("S=");
 	Serial.print(user_settings.audio_volume);
@@ -298,8 +297,8 @@ void show_settings_menu() {
 	Serial.println("  ? to show current settings");
 	Serial.println("  R to reset everything to defaults)");
 	Serial.println("  P to reset play statistics)");
-	Serial.println("  E to write changes to eeprom)");
-	Serial.println("  ! to restart with current settings");
+	//Serial.println("  E to write changes to eeprom)");
+	//Serial.println("  ! to restart with current settings");
 	
 	show_game_stats();
 }
@@ -345,7 +344,9 @@ void settings_eeprom_read()
 	
 }
 
-void settings_eeprom_write() {			
+void settings_eeprom_write() {		
+
+	sound_pause(); // prevent interrupt from causing crash	
 
 	EEPROM.begin(EEPROM_SIZE);
 	
@@ -363,6 +364,9 @@ void settings_eeprom_write() {
 	EEPROM.commit();
 	
 	EEPROM.end();
+	
+	sound_resume(); // restore sound interrupt
+	
 }
 
 void printError(int reason) {

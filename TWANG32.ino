@@ -37,7 +37,7 @@
 #define CLOCK_PIN       17
 #define LED_TYPE        APA102
 //#define LED_COLOR_ORDER BGR
-#define NUM_LEDS        288
+#define NUM_LEDS        144
 
 // what type of LED Strip....pick one
 #define USE_APA102

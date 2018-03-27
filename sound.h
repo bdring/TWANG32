@@ -7,7 +7,8 @@
  * 
  *   
  */
-
+#ifndef SOUND_H
+  #define SOUND_H
 
 #include "esp32-hal-timer.h";
 
@@ -55,6 +56,16 @@ void sound_init(int pin){  // pin must be a DAC pin number !! (typically 25 or 2
   timerAlarmEnable(sndTimer);	
 }
 
+void sound_pause() // this prevents the interrupt from firing ... use during eeprom write
+{
+	timerStop(sndTimer);	
+}
+
+void sound_resume() // resume from pause ... after eeprom write
+{
+	timerRestart(sndTimer);
+}
+
 bool sound(uint16_t freq, uint8_t volume){
 	if (volume == 0) {
 		soundOff();
@@ -77,7 +88,7 @@ void soundOff(){
 
 
 
-
+#endif
 
 
 
