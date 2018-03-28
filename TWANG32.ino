@@ -6,7 +6,7 @@
 	TWANG was originally created by Critters
 	https://github.com/Critters/TWANG
 	
-	It was inspired by Robin Baumgarten's Line Wobbler Game_Audio	
+	It was inspired by Robin Baumgarten's Line Wobbler Game
 
 */
 
@@ -287,22 +287,21 @@ void loop() {
             // LEVEL COMPLETE     
             tickWin(mm);
         }else if(stage == BOSS_KILLED){
-			tickBossKilled(mm);
-			//tickComplete(mm);            
+					tickBossKilled(mm);					   
          } else if (stage == GAMEOVER) {
-			  if (stageStartTime+GAMEOVER_FADE_DURATION > mm)
-			  {				 
-				tickGameover(mm);
-			  }
-			  else
-			  {
-				FastLED.clear(); 
-				save_game_stats(false);				
-				//score = 0; // reset the score
-				levelNumber = 0;
-				lives = user_settings.lives_per_level;
-				loadLevel();
-			  }          
+						if (stageStartTime+GAMEOVER_FADE_DURATION > mm)
+						{				 
+							tickGameover(mm);
+						}
+						else
+						{
+						FastLED.clear(); 
+						save_game_stats(false);		// boss not killed
+						//score = 0; // reset the score
+						levelNumber = 0;
+						lives = user_settings.lives_per_level;
+						loadLevel();
+						}          
          }
 
       FastLED.show();
@@ -318,8 +317,8 @@ void loop() {
 void loadLevel(){    	
 	// leave these alone
 	updateLives();
-    cleanupLevel();    
-    playerAlive = 1;
+  cleanupLevel();    
+  playerAlive = 1;
 	lastLevel = false; // this gets changed on the boss level
 	
 	/// Defaults...OK to change the following items in the levels below
@@ -874,6 +873,7 @@ void tickBossKilled(long mm) // boss funeral
 		}
 		SFXcomplete();
 	}else{		
+		save_game_stats(true);	// true = boss was killed
 		nextLevel();
 	}
 }
@@ -1017,12 +1017,7 @@ bool inLava(int pos){
     return false;
 }
 
-void updateLives(){
-    // Updates the life LEDs to show how many lives the player has left
-    //for(int i = 0; i<LIFE_LEDS; i++){
-    //   digitalWrite(lifeLEDs[i], lives>i?HIGH:LOW);
-    //}
-	
+void updateLives(){  
 	drawLives();
 }
 

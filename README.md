@@ -20,11 +20,20 @@ This was ported from the [TWANG fork](https://github.com/bdring/TWANG) by bdring
   - **SSID:** TWANG_AP
   - **Password:** esp32rocks
   - **URL:** 192.168.4.1
+- You can update these settings over wifi
+  - LED Brightness
+  - Audio Volume
+  - Joystick Deadzone (removes drift)
+  - Attack Threshold (twang sensitivity)
+  - Lives Per Level
 
-**Coming Soon:**
 
--  Wireless features
-  - ~~A wireless version of the serial port features of TWANG. I think the easiest way is to make it a Wifi access point with a simple web page interface. This allows control by any smartphone or computer with no client side work required.~~
+
+![](http://www.buildlog.net/blog/wp-content/uploads/2018/03/20180328_122254.jpg)
+
+Coming Soon:**
+
+-  Wireless features~~
   - 2 Player features by linking controllers. TBD
 -  Digitized Audio
   -  Currently the port uses the same square wave tones of the the Arduino version.

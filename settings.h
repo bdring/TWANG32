@@ -10,20 +10,36 @@
 #define EEPROM_SIZE				   256
 
 // LEDS
-#define BRIGHTNESS           150 
+#define DEFAULT_BRIGHTNESS	150 
+#define MIN_BRIGHTNESS			10
+#define MAX_BRIGHTNESS 			255
 
 // PLAYER
 const uint8_t MAX_PLAYER_SPEED = 10;     // Max move speed of the player
 const uint8_t LIVES_PER_LEVEL = 3;      // default lives per level
+#define MIN_LIVES_PER_LEVEL 3
+#define MAX_LIVES_PER_LEVEL 9
 
 // JOYSTICK
 #define JOYSTICK_ORIENTATION 1     // 0, 1 or 2 to set the axis of the joystick
 #define JOYSTICK_DIRECTION   1     // 0/1 to flip joystick direction
-#define ATTACK_THRESHOLD     30000 // The threshold that triggers an attack
-#define JOYSTICK_DEADZONE    8     // Angle to ignore
+#define DEFAULT_ATTACK_THRESHOLD     30000 // The threshold that triggers an attack
+#define MIN_ATTACK_THRESHOLD     20000
+#define MAX_ATTACK_THRESHOLD     30000
+
+
+#define DEFAULT_JOYSTICK_DEADZONE    8     // Angle to ignore
+#define MIN_JOYSTICK_DEADZONE 3
+#define MAX_JOYSTICK_DEADZONE 12
 
 // AUDIO
-#define MAX_VOLUME          180     // 0 to 255
+#define DEFAULT_VOLUME          180     // 0 to 255
+#define MIN_VOLUME							0
+#define MAX_VOLUME							255
+
+
+
+
 #define DAC_AUDIO_PIN 		25     // should be 25 or 26 only
 
 enum ErrorNums{
@@ -78,12 +94,7 @@ settings_t user_settings;
 char readBuffer[READ_BUFFER_LEN];
 uint8_t readIndex = 0;
 
-void settings_init() {
-		
-	//if (!EEPROM.begin(EEPROM_SIZE))
-	//{		
-	//	Serial.println("failed to initialize EEPROM");		
-	//}
+void settings_init() {	
 	
 	settings_eeprom_read();
 	show_settings_menu();	
@@ -187,11 +198,12 @@ void change_setting(char *line) {
   
   switch (param) {
 	case 'B': // brightness
-		if(newValue >=5 && newValue <=255) {
+		if(newValue >= MIN_BRIGHTNESS && newValue <= MAX_BRIGHTNESS) {
 			user_settings.led_brightness = (uint8_t)newValue;
 			settings_eeprom_write();
-			delay(1000);
-			ESP.restart();  // this one requires a restart right now
+			FastLED.setBrightness(user_settings.led_brightness);
+			//delay(1000);
+			//ESP.restart();  // this one requires a restart right now
 		}
 		else {			
 			printError(ERR_SETTING_RANGE);
@@ -200,7 +212,7 @@ void change_setting(char *line) {
 	break;
 	
 	case 'S': // sound
-		if (newValue >=0 && newValue < 255)
+		if (newValue >=MIN_VOLUME && newValue <= MAX_VOLUME)
 			user_settings.audio_volume = (uint8_t)newValue;
 		else {
 			printError(ERR_SETTING_RANGE);
@@ -209,7 +221,7 @@ void change_setting(char *line) {
 	break;
 	
 	case 'D': // deadzone, joystick
-		if(newValue >=3 && newValue <=12)
+		if(newValue >=MIN_JOYSTICK_DEADZONE && newValue <=MAX_JOYSTICK_DEADZONE)
 			user_settings.joystick_deadzone = (uint8_t)newValue;
 		else {
 			printError(ERR_SETTING_RANGE);
@@ -218,7 +230,7 @@ void change_setting(char *line) {
 	break;
 	
 	case 'A': // attack threshold, joystick
-		if(newValue >=20000 && newValue <=35000)
+		if(newValue >=MIN_ATTACK_THRESHOLD && newValue <=MAX_ATTACK_THRESHOLD)
 			user_settings.attack_threshold = (uint16_t)newValue;
 		else {
 			printError(ERR_SETTING_RANGE);
@@ -249,12 +261,12 @@ void change_setting(char *line) {
 void reset_settings() {
 	user_settings.settings_version = SETTINGS_VERSION;	
 	
-	user_settings.led_brightness = BRIGHTNESS;	
+	user_settings.led_brightness = DEFAULT_BRIGHTNESS;	
 	
-	user_settings.joystick_deadzone = JOYSTICK_DEADZONE;
-	user_settings.attack_threshold = ATTACK_THRESHOLD;
+	user_settings.joystick_deadzone = DEFAULT_JOYSTICK_DEADZONE;
+	user_settings.attack_threshold = DEFAULT_ATTACK_THRESHOLD;
 	
-	user_settings.audio_volume = MAX_VOLUME;
+	user_settings.audio_volume = DEFAULT_VOLUME;
 	
 	user_settings.lives_per_level = LIVES_PER_LEVEL;
 	
@@ -297,10 +309,6 @@ void show_settings_menu() {
 	Serial.println("  ? to show current settings");
 	Serial.println("  R to reset everything to defaults)");
 	Serial.println("  P to reset play statistics)");
-	//Serial.println("  E to write changes to eeprom)");
-	//Serial.println("  ! to restart with current settings");
-	
-	show_game_stats();
 }
 
 void show_game_stats()
@@ -314,10 +322,8 @@ void show_game_stats()
 	Serial.print("Boss kills: ");Serial.println(user_settings.boss_kills);	
 }
 
-void settings_eeprom_read()
-{
-	Serial.println("Begin EEPROM Read");	
-	
+void settings_eeprom_read()	{
+
 	EEPROM.begin(EEPROM_SIZE);
 	
 	uint8_t ver = EEPROM.read(0);
@@ -338,9 +344,11 @@ void settings_eeprom_read()
 		temp[i] = EEPROM.read(i);
 	}
 	
+	EEPROM.end();
+	
 	memcpy((char*)&user_settings, temp, sizeof(user_settings));	
 	
-	EEPROM.end();
+	
 	
 }
 
@@ -351,10 +359,7 @@ void settings_eeprom_write() {
 	EEPROM.begin(EEPROM_SIZE);
 	
 	uint8_t temp[sizeof(user_settings)];	
-	memcpy(temp, (uint8_t*)&user_settings, sizeof(user_settings));  
-	
-	Serial.println("Writing settings...");
-	
+	memcpy(temp, (uint8_t*)&user_settings, sizeof(user_settings));  	
 	
 	for (int i=0; i<sizeof(user_settings); i++)
 	{

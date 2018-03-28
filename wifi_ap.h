@@ -1,9 +1,13 @@
 #include <WiFi.h>
+#include "settings.h"
 
 const char* ssid     = "TWANG_AP";
 const char* passphrase = "esp32rocks";
 
 WiFiServer server(80);
+
+char linebuf[80];
+int charcount=0;
 
 void ap_setup() {
     bool ret;
@@ -19,14 +23,13 @@ void ap_setup() {
    */
     ret = WiFi.softAP(ssid, passphrase, 2, 0);
     
-    Serial.println("\r\nWiFi AP online ...");    
+    //Serial.println("\r\nWiFi AP online ...");    
     server.begin();
 	
 
 }
 
 void sendStatsPage(WiFiClient client) {
-  Serial.println("printUploadForm");
   // HTTP headers always start with a response code (e.g. HTTP/1.1 200 OK)
   // and a content-type so the client knows what's coming, then a blank line:
   client.println("HTTP/1.1 200 OK");
@@ -36,6 +39,7 @@ void sendStatsPage(WiFiClient client) {
   client.println("<body>");
   client.println("<h1>TWANG32 Play Stats</h1>");
   client.println("<ul>");
+	
   
   client.print("<li>Games played: "); client.print(user_settings.games_played); client.println("</li>");
   if (user_settings.games_played > 0) {  // prevent divide by 0
@@ -44,7 +48,32 @@ void sendStatsPage(WiFiClient client) {
   client.print("<li>High score: "); client.print(user_settings.high_score); client.println("</li>");
   client.print("<li>Boss kills: "); client.print(user_settings.boss_kills); client.println("</li>");
   
-  client.println("</ul>");
+	client.print("<h2>Adjustable Settings </h2>");
+	
+	client.print("<table>");
+	
+	client.print("<tr><td>Brightness</td><td><form><input type='text' name='B' value='"); 
+	client.print(user_settings.led_brightness);
+	client.print ("' size='4'><input type='submit'></form></td></tr>");
+		
+	client.print("<tr><td>Sound Volume</td><td><form><input type='text' name='S' value='");
+	client.print(user_settings.audio_volume);
+	client.print("' size='4'><input type='submit'></form></td></tr>");
+	
+	client.print("<tr><td>Joystick Deadzone (3-12)</td><td><form><input type='text' name='D' value='");
+	client.print(user_settings.joystick_deadzone);
+	client.print("' size='4'><input type='submit'></form></td></tr>");
+	
+	client.print("<tr><td>Attack Sensitivity (20000-35000)</td><td><form><input type='text' name='A' value='");
+	client.print(user_settings.attack_threshold);
+	client.print("' size='4'><input type='submit'></form></td></tr>");
+	
+	client.print("<tr><td>Lives Per Level (3-9)</td><td><form><input type='text' name='L' value='");
+	client.print(user_settings.lives_per_level);
+	client.print("' size='4'><input type='submit'></form></td></tr>");
+	
+  client.print("</table>");
+	
   client.println("</body>");
   client.println("</html>");  
   client.println();
@@ -57,9 +86,73 @@ void ap_client_check(){
   int stat;
   WiFiClient client = server.available();   // listen for incoming clients
 
-  if (client) {                             // if you get a client,
-     sendStatsPage(client);
-     Serial.println("printUploadForm");
-  }
+  //if (client) {                             // if you get a client,
+  //   sendStatsPage(client);
+  //   Serial.println("printUploadForm");
+  //}
+	bool currentLineIsBlank = true;
+	
+	while (client.connected()) {
+      if (client.available()) {
+        char c = client.read();
+				//Serial.write(c);
+				linebuf[charcount]=c;
+				if (charcount<sizeof(linebuf)-1) 
+					charcount++;
+				
+				if (c == '\n' && currentLineIsBlank) {
+					sendStatsPage(client);
+					break;					
+				}
+				if (c == '\n') {
+          // you're starting a new line
+          currentLineIsBlank = true;
+					
+					
+					if (strstr(linebuf,"GET /?") > 0)
+					{						
+					  String line = String(linebuf);		
+
+						int start = line.indexOf('=', 0) + 1;							
+						int finish = line.indexOf('H', start)-1;
+						String val = line.substring(start, finish);		
+						// if it is not numeric, it will convert to 0. 
+						// The constrain functions will make it 0 or the min value
+						
+						if (strstr(linebuf,"B=") > 0){   // typically look like this "GET /?S=100 HTTP/1.1"			
+							user_settings.led_brightness = constrain(val.toInt(), MIN_BRIGHTNESS, MAX_BRIGHTNESS);		
+							FastLED.setBrightness(user_settings.led_brightness);
+							settings_eeprom_write();
+						}
+						else if (strstr(linebuf,"S=") > 0){
+							//String val = line.substring(start, finish);						
+							user_settings.audio_volume = constrain(val.toInt(), MIN_VOLUME, MAX_VOLUME);						
+							settings_eeprom_write();
+						}
+						else if (strstr(linebuf,"D=") > 0){
+							user_settings.joystick_deadzone = constrain(val.toInt(), MIN_JOYSTICK_DEADZONE, MAX_JOYSTICK_DEADZONE);						
+							settings_eeprom_write();
+						}
+						else if (strstr(linebuf,"A=") > 0){
+							user_settings.attack_threshold = constrain(val.toInt(), MIN_ATTACK_THRESHOLD, MAX_ATTACK_THRESHOLD);						
+							settings_eeprom_write();
+						}
+						else if (strstr(linebuf,"L=") > 0){	
+							user_settings.lives_per_level = constrain(val.toInt(), MIN_LIVES_PER_LEVEL, MAX_LIVES_PER_LEVEL);						
+							settings_eeprom_write();
+						}
+					}
+					
+					// you're starting a new line
+					currentLineIsBlank = true;
+					memset(linebuf,0,sizeof(linebuf));
+					charcount=0;
+				} else if (c != '\r') {
+					// you've gotten a character on the current line
+					currentLineIsBlank = false;
+				}
+				
+			}
+	}
   
 }
