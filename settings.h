@@ -4,12 +4,19 @@
 #include <EEPROM.h>
 #include "sound.h"
 
+// Version 2 adds the number of LEDs
+
 // change this whenever the saved settings are not compatible with a change
 // It forces a reset from defaults.
-#define SETTINGS_VERSION 1 
+#define SETTINGS_VERSION 2 
 #define EEPROM_SIZE				   256
 
 // LEDS
+#define NUM_LEDS        144
+#define MIN_LEDS				60
+#define MAX_LEDS				1000
+
+
 #define DEFAULT_BRIGHTNESS	150 
 #define MIN_BRIGHTNESS			10
 #define MAX_BRIGHTNESS 			255
@@ -47,7 +54,8 @@ enum ErrorNums{
 	ERR_SETTING_RANGE
 };
 
-//EEPROMClass  SETTINGS("eeprom", 0x100);
+long lastInputTime = 0;
+
 
 //TODO ... move all the settings to this file.
 
@@ -57,11 +65,12 @@ void settings_init();
 void show_game_stats();
 void settings_eeprom_write();
 void settings_eeprom_read();
-void change_setting(char *line);
+void change_setting_serial(char *line);
 void processSerial(char inChar);
 void printError(int reason);
 void show_settings_menu();
 void reset_settings();
+void change_setting(char paramCode, uint16_t newValue);
 
 SemaphoreHandle_t xMutex;
 
@@ -69,7 +78,7 @@ SemaphoreHandle_t xMutex;
 typedef struct {
 	uint8_t settings_version; // stores the settings format version 	
 	
-	//due to the fastLED classes there is not much we can change dynamically
+	uint16_t led_count;
 	uint8_t led_brightness; 	
 	
 	uint8_t joystick_deadzone;
@@ -121,8 +130,6 @@ void processSerial(char inChar)
 				readIndex = 0;
 				reset_settings();
 				settings_eeprom_write();
-				delay(1000);
-				ESP.restart();
 				return;
 			break;
 			
@@ -135,6 +142,8 @@ void processSerial(char inChar)
 				return;
 			break;		
 			
+			case '!':
+				ESP.restart();			
 			default:
 			
 			break;
@@ -147,7 +156,7 @@ void processSerial(char inChar)
 			}
 			else {				
 				readBuffer[readIndex] = 0; // mark it as the end of the string
-				change_setting(readBuffer);	
+				change_setting_serial(readBuffer);	
 				readIndex = 0;
 			}
 		}
@@ -158,7 +167,7 @@ void processSerial(char inChar)
 			readIndex++;
 }
 
-void change_setting(char *line) {
+void change_setting_serial(char *line) {
   // line formate should be ss=nn
   // ss is always a 2 character integer
   // nn starts at index 3 and can be up to a 5 character unsigned integer
@@ -185,6 +194,7 @@ void change_setting(char *line) {
 		else {
 			Serial.println("Invalid setting value");
 			return;
+			
 		}			
 	}
 	else
@@ -195,72 +205,67 @@ void change_setting(char *line) {
   newValue = atoi(setting_val); // convert the val section to an integer
   
   memset(readBuffer,0,sizeof(readBuffer));
+	
+	change_setting(param, newValue);
+	
   
-  switch (param) {
-	case 'B': // brightness
-		if(newValue >= MIN_BRIGHTNESS && newValue <= MAX_BRIGHTNESS) {
-			user_settings.led_brightness = (uint8_t)newValue;
+}
+
+void change_setting(char paramCode, uint16_t newValue)
+{
+	switch (paramCode) {
+		 
+		
+		lastInputTime = millis(); // reset screensaver count				
+		
+		case 'C': // LED Count
+				user_settings.led_count = constrain(newValue, MIN_LEDS, MAX_LEDS);
+				settings_eeprom_write();
+		break;	
+			
+		case 'B': // brightness
+			user_settings.led_brightness = constrain(newValue, MIN_BRIGHTNESS, MAX_BRIGHTNESS);
+			settings_eeprom_write();			
+		break;
+		
+		case 'S': // sound
+			user_settings.audio_volume = constrain(newValue, MIN_VOLUME, MAX_VOLUME);
 			settings_eeprom_write();
-			FastLED.setBrightness(user_settings.led_brightness);
-			//delay(1000);
-			//ESP.restart();  // this one requires a restart right now
-		}
-		else {			
-			printError(ERR_SETTING_RANGE);
+		break;
+		
+		case 'D': // deadzone, joystick
+			user_settings.joystick_deadzone = constrain(newValue, MIN_JOYSTICK_DEADZONE, MAX_JOYSTICK_DEADZONE);
+			settings_eeprom_write();		
+		break;
+		
+		case 'A': // attack threshold, joystick
+			user_settings.attack_threshold = constrain(newValue, MIN_ATTACK_THRESHOLD, MAX_ATTACK_THRESHOLD);
+			settings_eeprom_write();
+		break;
+		
+		case 'L': // lives per level
+			user_settings.lives_per_level = constrain(newValue, MIN_LIVES_PER_LEVEL, MAX_LIVES_PER_LEVEL);
+			settings_eeprom_write();
+		break;	
+		
+		default:
+			Serial.print("Command Error: ");
+			Serial.println(readBuffer[0]);
 			return;
-		}
-	break;
-	
-	case 'S': // sound
-		if (newValue >=MIN_VOLUME && newValue <= MAX_VOLUME)
-			user_settings.audio_volume = (uint8_t)newValue;
-		else {
-			printError(ERR_SETTING_RANGE);
-			return;
-		}
-	break;
-	
-	case 'D': // deadzone, joystick
-		if(newValue >=MIN_JOYSTICK_DEADZONE && newValue <=MAX_JOYSTICK_DEADZONE)
-			user_settings.joystick_deadzone = (uint8_t)newValue;
-		else {
-			printError(ERR_SETTING_RANGE);
-			return;
-		}
-	break;
-	
-	case 'A': // attack threshold, joystick
-		if(newValue >=MIN_ATTACK_THRESHOLD && newValue <=MAX_ATTACK_THRESHOLD)
-			user_settings.attack_threshold = (uint16_t)newValue;
-		else {
-			printError(ERR_SETTING_RANGE);
-			return;
-		}	
-	break;
-	
-	case 'L': // lives per level
-		if (newValue >= 3 && newValue <= 9)
-			user_settings.lives_per_level = (uint8_t)newValue;
-		else {
-			printError(ERR_SETTING_RANGE);
-			return;
-		}
-	break;	
-	
-	default:
-		Serial.print("Command Error: ");
-		Serial.println(readBuffer[0]);
-		return;
-	break;
+		break;
 	
   } 
-  
-  show_settings_menu();
+	
+	show_settings_menu();
+	
 }
 
 void reset_settings() {
+	
+	
 	user_settings.settings_version = SETTINGS_VERSION;	
 	
+	user_settings.led_count = NUM_LEDS;
 	user_settings.led_brightness = DEFAULT_BRIGHTNESS;	
 	
 	user_settings.joystick_deadzone = DEFAULT_JOYSTICK_DEADZONE;
@@ -275,6 +280,8 @@ void reset_settings() {
 	user_settings.high_score = 0;	
 	user_settings.boss_kills = 0;
 	
+	Serial.println("Settings reset...");
+	
 	settings_eeprom_write();	
 }
 
@@ -285,9 +292,13 @@ void show_settings_menu() {
 	Serial.println("=     with a carriage return      =");
 	Serial.println("===================================");
 	
-	Serial.print("\r\nB=");	
+	Serial.print("\r\nC=");	
+	Serial.print(user_settings.led_count);
+	Serial.println(" (LED Count 100-1000..forces restart)");
+	
+	Serial.print("B=");	
 	Serial.print(user_settings.led_brightness);
-	Serial.println(" (LED Brightness 5-255..forces restart)");
+	Serial.println(" (LED Brightness 5-255)");
 	
 	Serial.print("S=");
 	Serial.print(user_settings.audio_volume);
@@ -332,6 +343,7 @@ void settings_eeprom_read()	{
 	if (ver != SETTINGS_VERSION) {
 		Serial.print("Error: EEPROM settings read failed:"); Serial.println(ver);
 		Serial.println("Loading defaults...");
+		EEPROM.end();
 		reset_settings();		
 		return;
 	}		
@@ -354,9 +366,15 @@ void settings_eeprom_read()	{
 
 void settings_eeprom_write() {		
 
+	Serial.println("Settings write...");
+
 	sound_pause(); // prevent interrupt from causing crash	
 
+	
+	
 	EEPROM.begin(EEPROM_SIZE);
+	
+	Serial.println("EEPROM open for write...");
 	
 	uint8_t temp[sizeof(user_settings)];	
 	memcpy(temp, (uint8_t*)&user_settings, sizeof(user_settings));  	

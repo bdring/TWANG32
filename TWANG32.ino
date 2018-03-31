@@ -7,10 +7,19 @@
 	https://github.com/Critters/TWANG
 	
 	It was inspired by Robin Baumgarten's Line Wobbler Game
+	
+	Recent Changes
+	- fixed bug in settings when initial read failed. It was
+	  trying to turn off the sound timer while it was still NULL
+	- Number of LEDs is now adjustable via serial and wifi. Woot, no 
+	  recompile just to change strip length.
+	- A little refactoring so Wifi and Serial interfaces can share 
+	  some code.
+	- Added Refresh button to web page
 
 */
 
-#define VERSION "2018-03-21"
+#define VERSION "2018-03-31"
 
 #include <FastLED.h>
 #include<Wire.h>
@@ -29,15 +38,12 @@
 #include "sound.h"
 #include "settings.h"
 #include "wifi_ap.h"
-//#include "SoundData.h";
-//#include "Game_Audio.h"
 
 
 #define DATA_PIN        16
 #define CLOCK_PIN       17
-#define LED_TYPE        APA102
-//#define LED_COLOR_ORDER BGR
-#define NUM_LEDS        144
+
+#define VIRTUAL_LED_COUNT 1000
 
 // what type of LED Strip....pick one
 #define USE_APA102
@@ -66,8 +72,8 @@
 // GAME
 long previousMillis = 0;           // Time of the last redraw
 int levelNumber = 0;
-long lastInputTime = 0;
-#define TIMEOUT              30000  // time until screen saver
+
+#define TIMEOUT              20000  // time until screen saver in milliseconds
 
 
 
@@ -96,12 +102,12 @@ bool attacking = 0;                // Is the attack in progress?
 #define WIN_OFF_DURATION 1200
 
 Twang_MPU accelgyro = Twang_MPU();
-CRGB leds[NUM_LEDS];
+CRGB leds[VIRTUAL_LED_COUNT];
 RunningMedian MPUAngleSamples = RunningMedian(5);
 RunningMedian MPUWobbleSamples = RunningMedian(5);
 iSin isin = iSin();
 
-//#define DEBUG  // comment out to stop serial debugging
+#define JOYSTICK_DEBUG  // comment out to stop serial debugging
 
 // POOLS
 #define LIFE_LEDS 3
@@ -165,7 +171,7 @@ void setup() {
 	Wire.begin();
 	accelgyro.initialize();
 
-	FastLED.addLeds<LED_TYPE, DATA_PIN, CLOCK_PIN, LED_COLOR_ORDER>(leds, NUM_LEDS);
+	FastLED.addLeds<LED_TYPE, DATA_PIN, CLOCK_PIN, LED_COLOR_ORDER>(leds, VIRTUAL_LED_COUNT);
 	FastLED.setBrightness(user_settings.led_brightness);
 	FastLED.setDither(1);
 
@@ -252,10 +258,10 @@ void loop() {
 					playerPosition = 0;
         
 				// stop player from leaving if boss is alive
-				if (boss.Alive() && playerPosition >= 1000) // move player back
-					playerPosition = 999; //(NUM_LEDS - 1) * (1000.0/NUM_LEDS);
+				if (boss.Alive() && playerPosition >= VIRTUAL_LED_COUNT) // move player back
+					playerPosition = 999; //(user_settings.led_count - 1) * (1000.0/user_settings.led_count);
           
-                if(playerPosition >= 1000 && !boss.Alive()) {
+                if(playerPosition >= VIRTUAL_LED_COUNT && !boss.Alive()) {
                     // Reached exit!
                     levelComplete();
                     return;
@@ -393,13 +399,13 @@ void loadLevel(){
             break;
         case 2:
             // Spawning enemies at exit every 2 seconds
-            spawnPool[0].Spawn(1000, 3000, 2, 0, 0);
+            spawnPool[0].Spawn(VIRTUAL_LED_COUNT, 3000, 2, 0, 0);
             break;
         case 3:
             // Lava intro
             spawnLava(400, 490, 2000, 2000, 0, Lava::OFF);
 			spawnEnemy(350, 0, 1, 0);
-            spawnPool[0].Spawn(1000, 5500, 3, 0, 0);
+            spawnPool[0].Spawn(VIRTUAL_LED_COUNT, 5500, 3, 0, 0);
 			
             break;
         case 4:
@@ -426,7 +432,7 @@ void loadLevel(){
             break;
         case 7:
             // Conveyor of enemies
-            spawnConveyor(50, 1000, 6);
+            spawnConveyor(50, VIRTUAL_LED_COUNT, 6);
             spawnEnemy(300, 0, 0, 0);
             spawnEnemy(400, 0, 0, 0);
             spawnEnemy(500, 0, 0, 0);
@@ -436,7 +442,7 @@ void loadLevel(){
             spawnEnemy(900, 0, 0, 0);
             break;
 		case 8:   // spawn train;		
-			spawnPool[0].Spawn(900, 1000, 3, 0, 0);					
+			spawnPool[0].Spawn(900, VIRTUAL_LED_COUNT, 3, 0, 0);					
 			break;
 		case 9:   // spawn train skinny width;
 			attack_width = 32;
@@ -456,13 +462,13 @@ void loadLevel(){
             spawnLava(195, 300, 2000, 2000, 0, Lava::OFF);
             spawnLava(400, 500, 2000, 2000, 0, Lava::OFF);
             spawnLava(600, 700, 2000, 2000, 0, Lava::OFF);
-            spawnPool[0].Spawn(1000, 3800, 4, 0, 0);
+            spawnPool[0].Spawn(VIRTUAL_LED_COUNT, 3800, 4, 0, 0);
             break;
         case 13:
             // Sin enemy #2 practice (slow conveyor)
             spawnEnemy(700, 1, 7, 275);
             spawnEnemy(500, 1, 5, 250);
-            spawnPool[0].Spawn(1000, 5500, 4, 0, 3000);
+            spawnPool[0].Spawn(VIRTUAL_LED_COUNT, 5500, 4, 0, 3000);
             spawnPool[1].Spawn(0, 5500, 5, 1, 10000);
             spawnConveyor(100, 900, -4);
             break;
@@ -470,7 +476,7 @@ void loadLevel(){
 			// Sin enemy #2 (fast conveyor)
             spawnEnemy(700, 1, 7, 275);
             spawnEnemy(500, 1, 5, 250);
-            spawnPool[0].Spawn(1000, 5500, 4, 0, 3000);
+            spawnPool[0].Spawn(VIRTUAL_LED_COUNT, 5500, 4, 0, 3000);
             spawnPool[1].Spawn(0, 5500, 5, 1, 10000);
             spawnConveyor(100, 900, -6);
 			break;
@@ -609,14 +615,14 @@ void tickStartup(long mm)
   FastLED.clear();
   if(stageStartTime+STARTUP_WIPEUP_DUR > mm) // fill to the top with green
   {
-    int n = _min(map(((mm-stageStartTime)), 0, STARTUP_WIPEUP_DUR, 0, NUM_LEDS), NUM_LEDS);  // fill from top to bottom
+    int n = _min(map(((mm-stageStartTime)), 0, STARTUP_WIPEUP_DUR, 0, user_settings.led_count), user_settings.led_count);  // fill from top to bottom
     for(int i = 0; i<= n; i++){     
       leds[i] = CRGB(0, 255, 0);
     }   
   }
   else if(stageStartTime+STARTUP_SPARKLE_DUR > mm) // sparkle the full green bar    
   {
-    for(int i = 0; i< NUM_LEDS; i++){    
+    for(int i = 0; i< user_settings.led_count; i++){    
       if(random8(30) < 28)
         leds[i] = CRGB(0, 255, 0);  // most are green
       else {
@@ -628,13 +634,13 @@ void tickStartup(long mm)
   }
   else if (stageStartTime+STARTUP_FADE_DUR > mm) // fade it out to bottom
   {
-    int n = _max(map(((mm-stageStartTime)), STARTUP_SPARKLE_DUR, STARTUP_FADE_DUR, 0, NUM_LEDS), 0);  // fill from top to bottom
+    int n = _max(map(((mm-stageStartTime)), STARTUP_SPARKLE_DUR, STARTUP_FADE_DUR, 0, user_settings.led_count), 0);  // fill from top to bottom
     int brightness = _max(map(((mm-stageStartTime)), STARTUP_SPARKLE_DUR, STARTUP_FADE_DUR, 255, 0), 0);
     // for(int i = 0; i<= n; i++){    
        
       // leds[i] = CRGB(0, brightness, 0);
     // }
-    for(int i = n; i< NUM_LEDS; i++){   
+    for(int i = n; i< user_settings.led_count; i++){   
        
       leds[i] = CRGB(0, brightness, 0);
     }   
@@ -713,7 +719,7 @@ void drawPlayer(){
 
 void drawExit(){
     if(!boss.Alive()){
-        leds[NUM_LEDS-1] = CRGB(0, 0, 255);
+        leds[user_settings.led_count-1] = CRGB(0, 0, 255);
     }
 }
 
@@ -827,18 +833,18 @@ void tickComplete(long mm)  // the boss is dead
   FastLED.clear();
   SFXcomplete();
   if(stageStartTime+500 > mm){
-    int n = _max(map(((mm-stageStartTime)), 0, 500, NUM_LEDS, 0), 0);
-    for(int i = NUM_LEDS; i>= n; i--){
+    int n = _max(map(((mm-stageStartTime)), 0, 500, user_settings.led_count, 0), 0);
+    for(int i = user_settings.led_count; i>= n; i--){
       brightness = (sin(((i*10)+mm)/500.0)+1)*255;
       leds[i].setHSV(brightness, 255, 50);
     }
   }else if(stageStartTime+5000 > mm){
-    for(int i = NUM_LEDS; i>= 0; i--){
+    for(int i = user_settings.led_count; i>= 0; i--){
       brightness = (sin(((i*10)+mm)/500.0)+1)*255;
       leds[i].setHSV(brightness, 255, 50);
     }
   }else if(stageStartTime+5500 > mm){
-    int n = _max(map(((mm-stageStartTime)), 5000, 5500, NUM_LEDS, 0), 0);
+    int n = _max(map(((mm-stageStartTime)), 5000, 5500, user_settings.led_count, 0), 0);
     for(int i = 0; i< n; i++){
       brightness = (sin(((i*10)+mm)/500.0)+1)*255;
       leds[i].setHSV(brightness, 255, 50);
@@ -853,20 +859,20 @@ void tickBossKilled(long mm) // boss funeral
 	int brightness = 0;
 	FastLED.clear();	
 	if(stageStartTime+500 > mm){
-		int n = _max(map(((mm-stageStartTime)), 0, 500, NUM_LEDS, 0), 0);
-		for(int i = NUM_LEDS; i>= n; i--){
+		int n = _max(map(((mm-stageStartTime)), 0, 500, user_settings.led_count, 0), 0);
+		for(int i = user_settings.led_count; i>= n; i--){
 			brightness = (sin(((i*10)+mm)/500.0)+1)*255;
 			leds[i].setHSV(brightness, 255, 50);
 		}
 		SFXbosskilled();
 	}else if(stageStartTime+6500 > mm){
-		for(int i = NUM_LEDS; i>= 0; i--){
+		for(int i = user_settings.led_count; i>= 0; i--){
 			brightness = (sin(((i*10)+mm)/500.0)+1)*255;
 			leds[i].setHSV(brightness, 255, 50);
 		}
 		SFXbosskilled();
 	}else if(stageStartTime+7000 > mm){
-		int n = _max(map(((mm-stageStartTime)), 5000, 5500, NUM_LEDS, 0), 0);
+		int n = _max(map(((mm-stageStartTime)), 5000, 5500, user_settings.led_count, 0), 0);
 		for(int i = 0; i< n; i++){
 			brightness = (sin(((i*10)+mm)/500.0)+1)*255;
 			leds[i].setHSV(brightness, 255, 50);
@@ -907,7 +913,7 @@ void tickGameover(long mm) {
   if(stageStartTime+GAMEOVER_SPREAD_DURATION > mm) // Spread red from player position to top and bottom
   {
     // fill to top
-    int n = _max(map(((mm-stageStartTime)), 0, GAMEOVER_SPREAD_DURATION, getLED(playerPosition), NUM_LEDS), 0);
+    int n = _max(map(((mm-stageStartTime)), 0, GAMEOVER_SPREAD_DURATION, getLED(playerPosition), user_settings.led_count), 0);
     for(int i = getLED(playerPosition); i<= n; i++){
       leds[i] = CRGB(255, 0, 0);
     }
@@ -920,7 +926,7 @@ void tickGameover(long mm) {
   }
   else if(stageStartTime+GAMEOVER_FADE_DURATION > mm)  // fade down to bottom and fade brightness
   {
-    int n = _max(map(((mm-stageStartTime)), GAMEOVER_FADE_DURATION, GAMEOVER_SPREAD_DURATION, NUM_LEDS, 0), 0);
+    int n = _max(map(((mm-stageStartTime)), GAMEOVER_FADE_DURATION, GAMEOVER_SPREAD_DURATION, user_settings.led_count, 0), 0);
     brightness =  map(((mm-stageStartTime)), GAMEOVER_SPREAD_DURATION, GAMEOVER_FADE_DURATION, 200, 0);
 
     for(int i = 0; i<= n; i++){
@@ -937,14 +943,14 @@ void tickWin(long mm) {
   int brightness = 0;
   FastLED.clear();
   if(stageStartTime+WIN_FILL_DURATION > mm){
-    int n = _max(map(((mm-stageStartTime)), 0, WIN_FILL_DURATION, NUM_LEDS, 0), 0);  // fill from top to bottom
-    for(int i = NUM_LEDS; i>= n; i--){
+    int n = _max(map(((mm-stageStartTime)), 0, WIN_FILL_DURATION, user_settings.led_count, 0), 0);  // fill from top to bottom
+    for(int i = user_settings.led_count; i>= n; i--){
       brightness = user_settings.led_brightness;
       leds[i] = CRGB(0, brightness, 0);
     }
     SFXwin();
   }else if(stageStartTime+WIN_CLEAR_DURATION > mm){
-    int n = _max(map(((mm-stageStartTime)), WIN_FILL_DURATION, WIN_CLEAR_DURATION, NUM_LEDS, 0), 0);  // clear from top to bottom
+    int n = _max(map(((mm-stageStartTime)), WIN_FILL_DURATION, WIN_CLEAR_DURATION, user_settings.led_count, 0), 0);  // clear from top to bottom
     for(int i = 0; i< n; i++){
       brightness = user_settings.led_brightness; 
       leds[i] = CRGB(0, brightness, 0);
@@ -1001,7 +1007,7 @@ void drawAttack(){
 
 int getLED(int pos){
     // The world is 1000 pixels wide, this converts world units into an LED number
-    return constrain((int)map(pos, 0, 1000, 0, NUM_LEDS-1), 0, NUM_LEDS-1);
+    return constrain((int)map(pos, 0, VIRTUAL_LED_COUNT, 0, user_settings.led_count-1), 0, user_settings.led_count-1);
 }
 
 bool inLava(int pos){
@@ -1042,9 +1048,9 @@ void screenSaverTick(){
     long mm = millis();
     int mode = (mm/30000)%5;
   
-  SFXcomplete(); // make sure there is not sound...play testing showed this to be a problem
+  SFXcomplete(); // turn off sound...play testing showed this to be a problem
 
-    for(i = 0; i<NUM_LEDS; i++){
+    for(i = 0; i<user_settings.led_count; i++){
         leds[i].nscale8(250);
     }
     if(mode == 0){
@@ -1052,7 +1058,7 @@ void screenSaverTick(){
         n = (mm/250)%10;
         b = 10+((sin(mm/500.00)+1)*20.00);
         c = 20+((sin(mm/5000.00)+1)*33);
-        for(i = 0; i<NUM_LEDS; i++){
+        for(i = 0; i<user_settings.led_count; i++){
             if(i%10 == n){
                 leds[i] = CHSV( c, 255, 150);
             }
@@ -1060,7 +1066,7 @@ void screenSaverTick(){
     }else if(mode >= 1){
         // Random flashes
         randomSeed(mm);
-        for(i = 0; i<NUM_LEDS; i++){
+        for(i = 0; i<user_settings.led_count; i++){
             if(random8(20) == 0){
                 leds[i] = CHSV( 25, 255, 100);
             }
@@ -1083,8 +1089,16 @@ void getInput(){
 	int16_t gx, gy, gz;
 
     accelgyro.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
+		
+		
+		
     int a = (JOYSTICK_ORIENTATION == 0?ax:(JOYSTICK_ORIENTATION == 1?ay:az))/166;
     int g = (JOYSTICK_ORIENTATION == 0?gx:(JOYSTICK_ORIENTATION == 1?gy:gz));
+		
+		#ifdef JOYSTICK_DEBUG
+			Serial.print("a:"); Serial.println(a);
+			Serial.print("g:"); Serial.println(g);
+		#endif
 	
     if(abs(a) < user_settings.joystick_deadzone) a = 0;
     if(a > 0) a -= user_settings.joystick_deadzone;
@@ -1097,6 +1111,12 @@ void getInput(){
         joystickTilt = 0-joystickTilt;
     }
     joystickWobble = abs(MPUWobbleSamples.getHighest());
+		
+		#ifdef JOYSTICK_DEBUG
+			//Serial.print("tilt:"); Serial.println(joystickTilt);
+			//Serial.print("wobble:"); Serial.println(joystickWobble);
+		#endif
+		
 }
 
 // ---------------------------------

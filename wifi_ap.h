@@ -47,16 +47,22 @@ void sendStatsPage(WiFiClient client) {
   }
   client.print("<li>High score: "); client.print(user_settings.high_score); client.println("</li>");
   client.print("<li>Boss kills: "); client.print(user_settings.boss_kills); client.println("</li>");
+	
+	client.print("<button onClick=\"location.href = 'http://192.168.4.1'\">Refresh</button>");
   
 	client.print("<h2>Adjustable Settings </h2>");
 	
 	client.print("<table>");
 	
-	client.print("<tr><td>Brightness</td><td><form><input type='text' name='B' value='"); 
+	client.print("<tr><td>LED Count (100-1000)</td><td><form><input type='text' name='C' value='"); 
+	client.print(user_settings.led_count);
+	client.print ("' size='4'><input type='submit'></form></td></tr>");
+	
+	client.print("<tr><td>Brightness (10-255)</td><td><form><input type='text' name='B' value='"); 
 	client.print(user_settings.led_brightness);
 	client.print ("' size='4'><input type='submit'></form></td></tr>");
 		
-	client.print("<tr><td>Sound Volume</td><td><form><input type='text' name='S' value='");
+	client.print("<tr><td>Sound Volume (0-255)</td><td><form><input type='text' name='S' value='");
 	client.print(user_settings.audio_volume);
 	client.print("' size='4'><input type='submit'></form></td></tr>");
 	
@@ -113,34 +119,18 @@ void ap_client_check(){
 					{						
 					  String line = String(linebuf);		
 
-						int start = line.indexOf('=', 0) + 1;							
-						int finish = line.indexOf('H', start)-1;
-						String val = line.substring(start, finish);		
-						// if it is not numeric, it will convert to 0. 
-						// The constrain functions will make it 0 or the min value
+						int start = line.indexOf('=', 0);
+
+						char paramCode = line.charAt(start - 1);
 						
-						if (strstr(linebuf,"B=") > 0){   // typically look like this "GET /?S=100 HTTP/1.1"			
-							user_settings.led_brightness = constrain(val.toInt(), MIN_BRIGHTNESS, MAX_BRIGHTNESS);		
-							FastLED.setBrightness(user_settings.led_brightness);
-							settings_eeprom_write();
-						}
-						else if (strstr(linebuf,"S=") > 0){
-							//String val = line.substring(start, finish);						
-							user_settings.audio_volume = constrain(val.toInt(), MIN_VOLUME, MAX_VOLUME);						
-							settings_eeprom_write();
-						}
-						else if (strstr(linebuf,"D=") > 0){
-							user_settings.joystick_deadzone = constrain(val.toInt(), MIN_JOYSTICK_DEADZONE, MAX_JOYSTICK_DEADZONE);						
-							settings_eeprom_write();
-						}
-						else if (strstr(linebuf,"A=") > 0){
-							user_settings.attack_threshold = constrain(val.toInt(), MIN_ATTACK_THRESHOLD, MAX_ATTACK_THRESHOLD);						
-							settings_eeprom_write();
-						}
-						else if (strstr(linebuf,"L=") > 0){	
-							user_settings.lives_per_level = constrain(val.toInt(), MIN_LIVES_PER_LEVEL, MAX_LIVES_PER_LEVEL);						
-							settings_eeprom_write();
-						}
+						int finish = line.indexOf('H', start+1)-1;
+						String val = line.substring(start+1, finish);		
+						// if it is not numeric, it will convert to 0. 
+						// The the change_setting function will make sure the range is OK
+						
+						change_setting(paramCode, val.toInt());
+						
+						
 					}
 					
 					// you're starting a new line

@@ -58,12 +58,14 @@ void sound_init(int pin){  // pin must be a DAC pin number !! (typically 25 or 2
 
 void sound_pause() // this prevents the interrupt from firing ... use during eeprom write
 {
-	timerStop(sndTimer);	
+	if (sndTimer != NULL)
+		timerStop(sndTimer);	
 }
 
 void sound_resume() // resume from pause ... after eeprom write
 {
-	timerRestart(sndTimer);
+	if (sndTimer != NULL)
+		timerRestart(sndTimer);
 }
 
 bool sound(uint16_t freq, uint8_t volume){

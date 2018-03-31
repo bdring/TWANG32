@@ -31,8 +31,10 @@ This was ported from the [TWANG fork](https://github.com/bdring/TWANG) by bdring
 
 ![](http://www.buildlog.net/blog/wp-content/uploads/2018/03/20180328_122254.jpg)
 
-Coming Soon:**
+## Coming Soon:
 
+-  Setting
+  -  I want to figure out a way to have the LED count be set via the web server. I often bring several length LED strings to an event because I don't know which size is most appropriate. A last minute recompile is not a good solution. 
 -  Wireless features~~
   - 2 Player features by linking controllers. TBD
 -  Digitized Audio
