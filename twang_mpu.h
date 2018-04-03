@@ -9,12 +9,15 @@ class Twang_MPU
   public:
 	  void initialize();
 	  void getMotion6(int16_t* xAccel, int16_t* yAccel, int16_t* zAccel, int16_t* xGyro, int16_t* yGyro, int16_t* zGyro);
+	  bool verify();
 
   private:
 	  static const uint8_t MPU_ADDR = 0x68;
 	  static const uint8_t PWR_MGMT_1 = 0x6B;
 	  static const uint8_t MPU_DATA_REG_START = 0x3B;
 	  static const uint8_t MPU_DATA_LEN = 14;	
+		static const uint8_t MPU_DATA_WHO_AM_I = 0x75;
+		
 };
 
 void Twang_MPU::initialize()
@@ -25,6 +28,14 @@ void Twang_MPU::initialize()
 	Wire.endTransmission(true);
 }
 
+bool Twang_MPU::verify()
+{
+	Wire.beginTransmission(MPU_ADDR);
+	Wire.write(MPU_DATA_WHO_AM_I);  
+	Wire.endTransmission(false);
+	Wire.requestFrom(MPU_ADDR,1,true);  // read the whole MPU data section
+	return (Wire.read() == MPU_ADDR);
+}
 
 void Twang_MPU::getMotion6(int16_t* xAccel, int16_t* yAccel, int16_t* zAccel, int16_t* xGyro, int16_t* yGyro, int16_t* zGyro)
 {

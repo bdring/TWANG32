@@ -225,6 +225,7 @@ void change_setting(char paramCode, uint16_t newValue)
 			
 		case 'B': // brightness
 			user_settings.led_brightness = constrain(newValue, MIN_BRIGHTNESS, MAX_BRIGHTNESS);
+			FastLED.setBrightness(user_settings.led_brightness);
 			settings_eeprom_write();			
 		break;
 		

@@ -54,29 +54,29 @@ void sendStatsPage(WiFiClient client) {
 	
 	client.print("<table>");
 	
-	client.print("<tr><td>LED Count (100-1000)</td><td><form><input type='text' name='C' value='"); 
+	client.print("<tr><td>LED Count (60-1000)</td><td><form><input type='number' name='C' value='"); 
 	client.print(user_settings.led_count);
-	client.print ("' size='4'><input type='submit'></form></td></tr>");
+	client.print ("' min='60' max='1000'><input type='submit'></form></td></tr>");
 	
-	client.print("<tr><td>Brightness (10-255)</td><td><form><input type='text' name='B' value='"); 
+	client.print("<tr><td>Brightness (10-255)</td><td><form><input type='number' name='B' value='"); 
 	client.print(user_settings.led_brightness);
-	client.print ("' size='4'><input type='submit'></form></td></tr>");
+	client.print ("' min='10' max='255'><input type='submit'></form></td></tr>");
 		
-	client.print("<tr><td>Sound Volume (0-255)</td><td><form><input type='text' name='S' value='");
+	client.print("<tr><td>Sound Volume (0-255)</td><td><form><input type='number' name='S' value='");
 	client.print(user_settings.audio_volume);
-	client.print("' size='4'><input type='submit'></form></td></tr>");
+	client.print("' min='0' max='255'><input type='submit'></form></td></tr>");
 	
-	client.print("<tr><td>Joystick Deadzone (3-12)</td><td><form><input type='text' name='D' value='");
+	client.print("<tr><td>Joystick Deadzone (3-12)</td><td><form><input type='number' name='D' value='");
 	client.print(user_settings.joystick_deadzone);
-	client.print("' size='4'><input type='submit'></form></td></tr>");
+	client.print("' min='3' max='12'><input type='submit'></form></td></tr>");
 	
-	client.print("<tr><td>Attack Sensitivity (20000-35000)</td><td><form><input type='text' name='A' value='");
+	client.print("<tr><td>Attack Sensitivity (20000-35000)</td><td><form><input type='number' name='A' value='");
 	client.print(user_settings.attack_threshold);
-	client.print("' size='4'><input type='submit'></form></td></tr>");
+	client.print("' min='2000' max='35000'><input type='submit'></form></td></tr>");
 	
-	client.print("<tr><td>Lives Per Level (3-9)</td><td><form><input type='text' name='L' value='");
+	client.print("<tr><td>Lives Per Level (3-9)</td><td><form><input type='number' name='L' value='");
 	client.print(user_settings.lives_per_level);
-	client.print("' size='4'><input type='submit'></form></td></tr>");
+	client.print("' min='3' max='9'><input type='submit'></form></td></tr>");
 	
   client.print("</table>");
 	

@@ -107,7 +107,7 @@ RunningMedian MPUAngleSamples = RunningMedian(5);
 RunningMedian MPUWobbleSamples = RunningMedian(5);
 iSin isin = iSin();
 
-#define JOYSTICK_DEBUG  // comment out to stop serial debugging
+//#define JOYSTICK_DEBUG  // comment out to stop serial debugging
 
 // POOLS
 #define LIFE_LEDS 3
@@ -1048,7 +1048,7 @@ void screenSaverTick(){
     long mm = millis();
     int mode = (mm/30000)%5;
   
-  SFXcomplete(); // turn off sound...play testing showed this to be a problem
+	SFXcomplete(); // turn off sound...play testing showed this to be a problem
 
     for(i = 0; i<user_settings.led_count; i++){
         leds[i].nscale8(250);
@@ -1065,13 +1065,17 @@ void screenSaverTick(){
         }
     }else if(mode >= 1){
         // Random flashes
+		
         randomSeed(mm);
         for(i = 0; i<user_settings.led_count; i++){
             if(random8(20) == 0){
                 leds[i] = CHSV( 25, 255, 100);
             }
         }
+		
+		
     }
+	
 }
 
 // ---------------------------------
@@ -1234,4 +1238,5 @@ long map_constrain(long x, long in_min, long in_max, long out_min, long out_max)
   }  
   return map(x, in_min, in_max, out_min, out_max);
 }
+
 
