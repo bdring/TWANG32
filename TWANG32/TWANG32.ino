@@ -9,13 +9,13 @@
 	It was inspired by Robin Baumgarten's Line Wobbler Game
 	
 	Recent Changes
-	- fixed bug in settings when initial read failed. It was
-	  trying to turn off the sound timer while it was still NULL
-	- Number of LEDs is now adjustable via serial and wifi. Woot, no 
-	  recompile just to change strip length.
-	- A little refactoring so Wifi and Serial interfaces can share 
-	  some code.
-	- Added Refresh button to web page
+	- JOYSTICK_DEBUG was left on...turned it off
+	- Web page fields now have type='number' so they bring up a number keyboard
+	- Refresh the brightness when it changes.
+	- More Screen Savers
+	- Better looking reset after gameover
+	- Better looking restart after boss kill
+	- Updated readme with video and latest info
 
 */
 
@@ -45,7 +45,7 @@
 
 #define VIRTUAL_LED_COUNT 1000
 
-// what type of LED Strip....pick one
+// what type of LED Strip....uncomment only one
 #define USE_APA102
 //#define USE_NEOPIXEL
 
@@ -303,10 +303,12 @@ void loop() {
 						{
 						FastLED.clear(); 
 						save_game_stats(false);		// boss not killed
-						//score = 0; // reset the score
-						levelNumber = 0;
-						lives = user_settings.lives_per_level;
-						loadLevel();
+						
+						// restart from the beginning
+						stage = STARTUP;
+						stageStartTime = millis();
+						lives = user_settings.lives_per_level;						
+						
 						}          
          }
 
@@ -322,9 +324,10 @@ void loop() {
 // ---------------------------------
 void loadLevel(){    	
 	// leave these alone
+	FastLED.setBrightness(user_settings.led_brightness);
 	updateLives();
-  cleanupLevel();    
-  playerAlive = 1;
+	cleanupLevel();    
+	playerAlive = 1;
 	lastLevel = false; // this gets changed on the boss level
 	
 	/// Defaults...OK to change the following items in the levels below
@@ -388,119 +391,120 @@ void loadLevel(){
 					
 	
 	*/
-    switch(levelNumber){
-        case 0: // basic introduction 
-            playerPosition = 200;			
-            spawnEnemy(1, 0, 0, 0);					
-            break;
-        case 1:
-            // Slow moving enemy			
-            spawnEnemy(900, 0, 1, 0);			
-            break;
-        case 2:
-            // Spawning enemies at exit every 2 seconds
-            spawnPool[0].Spawn(VIRTUAL_LED_COUNT, 3000, 2, 0, 0);
-            break;
-        case 3:
-            // Lava intro
-            spawnLava(400, 490, 2000, 2000, 0, Lava::OFF);
-			spawnEnemy(350, 0, 1, 0);
-            spawnPool[0].Spawn(VIRTUAL_LED_COUNT, 5500, 3, 0, 0);
-			
-            break;
-        case 4:
-            // Sin enemy
-            spawnEnemy(700, 1, 7, 275);
-            spawnEnemy(500, 1, 5, 250);
-            break;
-		case 5:
-			// Sin enemy swarm
-            spawnEnemy(700, 1, 7, 275);
-            spawnEnemy(500, 1, 5, 250);
-			
-			spawnEnemy(600, 1, 7, 200);
-            spawnEnemy(800, 1, 5, 350);
-			
-			spawnEnemy(400, 1, 7, 150);
-            spawnEnemy(450, 1, 5, 400);
-			
-            break;
-        case 6:
-            // Conveyor
-            spawnConveyor(100, 600, -6);
-            spawnEnemy(800, 0, 0, 0);
-            break;
-        case 7:
-            // Conveyor of enemies
-            spawnConveyor(50, VIRTUAL_LED_COUNT, 6);
-            spawnEnemy(300, 0, 0, 0);
-            spawnEnemy(400, 0, 0, 0);
-            spawnEnemy(500, 0, 0, 0);
-            spawnEnemy(600, 0, 0, 0);
-            spawnEnemy(700, 0, 0, 0);
-            spawnEnemy(800, 0, 0, 0);
-            spawnEnemy(900, 0, 0, 0);
-            break;
-		case 8:   // spawn train;		
-			spawnPool[0].Spawn(900, VIRTUAL_LED_COUNT, 3, 0, 0);					
-			break;
-		case 9:   // spawn train skinny width;
-			attack_width = 32;
-			spawnPool[0].Spawn(900, 1800, 2, 0, 0);
-			break;
-		case 10:  // evil fast split spawner
-			spawnPool[0].Spawn(550, 1100, 3, 0, 0);
-			spawnPool[1].Spawn(550, 1100, 3, 1, 0);		
-			break;
-		case 11: // split spawner with exit blocking lava
-			spawnPool[0].Spawn(500, 1100, 3, 0, 0);
-			spawnPool[1].Spawn(500, 1100, 3, 1, 0);		
-			spawnLava(900, 950, 2200, 800, 2000, Lava::OFF);
-			break;
-        case 12:
-            // Lava run
-            spawnLava(195, 300, 2000, 2000, 0, Lava::OFF);
-            spawnLava(400, 500, 2000, 2000, 0, Lava::OFF);
-            spawnLava(600, 700, 2000, 2000, 0, Lava::OFF);
-            spawnPool[0].Spawn(VIRTUAL_LED_COUNT, 3800, 4, 0, 0);
-            break;
-        case 13:
-            // Sin enemy #2 practice (slow conveyor)
-            spawnEnemy(700, 1, 7, 275);
-            spawnEnemy(500, 1, 5, 250);
-            spawnPool[0].Spawn(VIRTUAL_LED_COUNT, 5500, 4, 0, 3000);
-            spawnPool[1].Spawn(0, 5500, 5, 1, 10000);
-            spawnConveyor(100, 900, -4);
-            break;
-		case 14:
-			// Sin enemy #2 (fast conveyor)
-            spawnEnemy(700, 1, 7, 275);
-            spawnEnemy(500, 1, 5, 250);
-            spawnPool[0].Spawn(VIRTUAL_LED_COUNT, 5500, 4, 0, 3000);
-            spawnPool[1].Spawn(0, 5500, 5, 1, 10000);
-            spawnConveyor(100, 900, -6);
-			break;
-        case 15: // (don't edit last level)
-            // Boss this should always be the last level			
-            spawnBoss();
-            break;
-    }
-    stageStartTime = millis();
-    stage = PLAY;
+	switch(levelNumber){
+	case 0: // basic introduction 
+		playerPosition = 200;			
+		spawnEnemy(1, 0, 0, 0);					
+		break;
+	case 1:
+		// Slow moving enemy			
+		spawnEnemy(900, 0, 1, 0);				
+		break;
+	case 2:
+		// Spawning enemies at exit every 2 seconds		
+		spawnPool[0].Spawn(1000, 3000, 2, 0, 0);
+		break;
+	case 3:
+		// Lava intro
+		spawnLava(400, 490, 2000, 2000, 0, Lava::OFF);
+		spawnEnemy(350, 0, 1, 0);
+		spawnPool[0].Spawn(1000, 5500, 3, 0, 0);
+		
+		break;
+	case 4:
+		// Sin enemy				
+		spawnEnemy(700, 1, 7, 275);
+		spawnEnemy(500, 1, 5, 250);
+		break;
+	case 5:
+		// Sin enemy swarm
+		spawnEnemy(700, 1, 7, 275);
+		spawnEnemy(500, 1, 5, 250);
+		
+		spawnEnemy(600, 1, 7, 200);
+		spawnEnemy(800, 1, 5, 350);
+		
+		spawnEnemy(400, 1, 7, 150);
+		spawnEnemy(450, 1, 5, 400);
+		
+		break;
+	case 6:
+		// Conveyor
+		spawnConveyor(100, 600, -6);
+		spawnEnemy(800, 0, 0, 0);
+		break;
+	case 7:
+		// Conveyor of enemies
+		spawnConveyor(50, 1000, 6);
+		spawnEnemy(300, 0, 0, 0);
+		spawnEnemy(400, 0, 0, 0);
+		spawnEnemy(500, 0, 0, 0);
+		spawnEnemy(600, 0, 0, 0);
+		spawnEnemy(700, 0, 0, 0);
+		spawnEnemy(800, 0, 0, 0);
+		spawnEnemy(900, 0, 0, 0);
+		break;
+	case 8:   // spawn train;		
+		spawnPool[0].Spawn(900, 1300, 2, 0, 0);					
+		break;
+	case 9:   // spawn train skinny attack width;
+		attack_width = 32;
+		spawnPool[0].Spawn(900, 1800, 2, 0, 0);
+		break;
+	case 10:  // evil fast split spawner
+		spawnPool[0].Spawn(550, 1500, 2, 0, 0);
+		spawnPool[1].Spawn(550, 1500, 2, 1, 0);
+		break;
+	case 11: // split spawner with exit blocking lava
+		spawnPool[0].Spawn(500, 1200, 2, 0, 0);
+		spawnPool[1].Spawn(500, 1200, 2, 1, 0);		
+		spawnLava(900, 950, 2200, 800, 2000, Lava::OFF);
+		break;
+	case 12:
+		// Lava run
+		spawnLava(195, 300, 2000, 2000, 0, Lava::OFF);
+		spawnLava(400, 500, 2000, 2000, 0, Lava::OFF);
+		spawnLava(600, 700, 2000, 2000, 0, Lava::OFF);
+		spawnPool[0].Spawn(1000, 3800, 4, 0, 0);
+		break;
+	case 13:
+		// Sin enemy #2 practice (slow conveyor)
+		spawnEnemy(700, 1, 7, 275);
+		spawnEnemy(500, 1, 5, 250);
+		spawnPool[0].Spawn(1000, 5500, 4, 0, 3000);
+		spawnPool[1].Spawn(0, 5500, 5, 1, 10000);
+		spawnConveyor(100, 900, -4);
+		break;
+	case 14:
+		// Sin enemy #2 (fast conveyor)
+		spawnEnemy(800, 1, 7, 275);
+		spawnEnemy(700, 1, 7, 275);
+		spawnEnemy(500, 1, 5, 250);			
+		spawnPool[0].Spawn(1000, 3000, 4, 0, 3000);
+		spawnPool[1].Spawn(0, 5500, 5, 1, 10000);
+		spawnConveyor(100, 900, -6);
+		break;
+	case 15: // (don't edit last level)
+		// Boss this should always be the last level			
+		spawnBoss();
+		break;
+	}
+	stageStartTime = millis();
+	stage = PLAY;
 }
 
 void spawnBoss(){
 	lastLevel = true;
-    boss.Spawn();	
-    moveBoss();
+	boss.Spawn();	
+	moveBoss();
 }
 
 void moveBoss(){
-    int spawnSpeed = 2500;
-    if(boss._lives == 2) spawnSpeed = 2000;
-    if(boss._lives == 1) spawnSpeed = 1500;
-    spawnPool[0].Spawn(boss._pos, spawnSpeed, 3, 0, 0);
-    spawnPool[1].Spawn(boss._pos, spawnSpeed, 3, 1, 0);
+	int spawnSpeed = 1800;
+	if(boss._lives == 2) spawnSpeed = 1600;
+	if(boss._lives == 1) spawnSpeed = 1000;
+	spawnPool[0].Spawn(boss._pos, spawnSpeed, 3, 0, 0);
+	spawnPool[1].Spawn(boss._pos, spawnSpeed, 3, 1, 0);
 }
 
 /* ======================== spawn Functions =====================================
@@ -572,13 +576,18 @@ void levelComplete(){
 }
 
 void nextLevel(){		
-    levelNumber ++;
+	levelNumber ++;
 	
-	if(lastLevel)		
-		levelNumber = 0;
-	
-	lives = user_settings.lives_per_level;
-    loadLevel();
+	if(lastLevel)	{
+		stage = STARTUP;
+		stageStartTime = millis();
+		lives = user_settings.lives_per_level;
+		
+	}
+	else {
+		lives = user_settings.lives_per_level;
+		loadLevel();
+	}
 }
 
 void gameOver(){
@@ -856,19 +865,18 @@ void tickComplete(long mm)  // the boss is dead
 
 void tickBossKilled(long mm) // boss funeral
 {
+	static uint8_t gHue = 0; 
+	
+	FastLED.setBrightness(255); // super bright!
+	
 	int brightness = 0;
 	FastLED.clear();	
-	if(stageStartTime+500 > mm){
-		int n = _max(map(((mm-stageStartTime)), 0, 500, user_settings.led_count, 0), 0);
-		for(int i = user_settings.led_count; i>= n; i--){
-			brightness = (sin(((i*10)+mm)/500.0)+1)*255;
-			leds[i].setHSV(brightness, 255, 50);
-		}
-		SFXbosskilled();
-	}else if(stageStartTime+6500 > mm){
-		for(int i = user_settings.led_count; i>= 0; i--){
-			brightness = (sin(((i*10)+mm)/500.0)+1)*255;
-			leds[i].setHSV(brightness, 255, 50);
+	
+	if(stageStartTime+6500 > mm){
+		gHue++;
+		fill_rainbow( leds, user_settings.led_count, gHue, 7); // FastLED's built in rainbow
+		if( random8() < 200) {  // add glitter
+			leds[ random16(user_settings.led_count) ] += CRGB::White;
 		}
 		SFXbosskilled();
 	}else if(stageStartTime+7000 > mm){
@@ -879,7 +887,6 @@ void tickBossKilled(long mm) // boss funeral
 		}
 		SFXcomplete();
 	}else{		
-		save_game_stats(true);	// true = boss was killed
 		nextLevel();
 	}
 }
@@ -1044,37 +1051,24 @@ void save_game_stats(bool bossKill)
 // --------- SCREENSAVER -----------
 // ---------------------------------
 void screenSaverTick(){
-    int n, b, c, i;
     long mm = millis();
     int mode = (mm/30000)%5;
   
 	SFXcomplete(); // turn off sound...play testing showed this to be a problem
 
-    for(i = 0; i<user_settings.led_count; i++){
-        leds[i].nscale8(250);
-    }
-    if(mode == 0){
-        // Marching green <> orange
-        n = (mm/250)%10;
-        b = 10+((sin(mm/500.00)+1)*20.00);
-        c = 20+((sin(mm/5000.00)+1)*33);
-        for(i = 0; i<user_settings.led_count; i++){
-            if(i%10 == n){
-                leds[i] = CHSV( c, 255, 150);
-            }
-        }
-    }else if(mode >= 1){
-        // Random flashes
-		
-        randomSeed(mm);
-        for(i = 0; i<user_settings.led_count; i++){
-            if(random8(20) == 0){
-                leds[i] = CHSV( 25, 255, 100);
-            }
-        }
-		
-		
-    }
+	if (mode == 0) {
+		LED_march();
+	}
+	else if (mode == 1) {
+		random_LED_flashes();
+	}
+	else if (mode == 2)
+		sinelon();
+	else if (mode == 3)
+		juggle();
+	else {
+		Fire2012();
+	}
 	
 }
 
@@ -1237,6 +1231,146 @@ long map_constrain(long x, long in_min, long in_max, long out_min, long out_max)
     x = constrain(x, in_max, in_min);
   }  
   return map(x, in_min, in_max, out_min, out_max);
+}
+
+// Fire2012 by Mark Kriegsman, July 2012
+// as part of "Five Elements" shown here: http://youtu.be/knWiGsmgycY
+//// 
+// This basic one-dimensional 'fire' simulation works roughly as follows:
+// There's a underlying array of 'heat' cells, that model the temperature
+// at each point along the line.  Every cycle through the simulation, 
+// four steps are performed:
+//  1) All cells cool down a little bit, losing heat to the air
+//  2) The heat from each cell drifts 'up' and diffuses a little
+//  3) Sometimes randomly new 'sparks' of heat are added at the bottom
+//  4) The heat from each cell is rendered as a color into the leds array
+//     The heat-to-color mapping uses a black-body radiation approximation.
+//
+// Temperature is in arbitrary units from 0 (cold black) to 255 (white hot).
+//
+// This simulation scales it self a bit depending on NUM_LEDS; it should look
+// "OK" on anywhere from 20 to 100 LEDs without too much tweaking. 
+//
+// I recommend running this simulation at anywhere from 30-100 frames per second,
+// meaning an interframe delay of about 10-35 milliseconds.
+//
+// Looks best on a high-density LED setup (60+ pixels/meter).
+//
+//
+// There are two main parameters you can play with to control the look and
+// feel of your fire: COOLING (used in step 1 above), and SPARKING (used
+// in step 3 above).
+//
+// COOLING: How much does the air cool as it rises?
+// Less cooling = taller flames.  More cooling = shorter flames.
+// Default 50, suggested range 20-100 
+#define COOLING  75
+
+// SPARKING: What chance (out of 255) is there that a new spark will be lit?
+// Higher chance = more roaring fire.  Lower chance = more flickery fire.
+// Default 120, suggested range 50-200.
+#define SPARKING 40
+
+//======================================== SCREEN SAVERS =================
+
+
+void Fire2012()
+{
+// Array of temperature readings at each simulation cell
+  static byte heat[VIRTUAL_LED_COUNT]; // the most possible
+  bool gReverseDirection = false;
+
+  // Step 1.  Cool down every cell a little
+    for( int i = 0; i < user_settings.led_count; i++) {
+      heat[i] = qsub8( heat[i],  random8(0, ((COOLING * 10) / user_settings.led_count) + 2));
+    }
+  
+    // Step 2.  Heat from each cell drifts 'up' and diffuses a little
+    for( int k= user_settings.led_count - 1; k >= 2; k--) {
+      heat[k] = (heat[k - 1] + heat[k - 2] + heat[k - 2] ) / 3;
+    }
+    
+    // Step 3.  Randomly ignite new 'sparks' of heat near the bottom
+    if( random8() < SPARKING ) {
+      int y = random8(7);
+      heat[y] = qadd8( heat[y], random8(160,255) );
+    }
+
+    // Step 4.  Map from heat cells to LED colors
+    for( int j = 0; j < user_settings.led_count; j++) {
+      CRGB color = HeatColor( heat[j]);
+      int pixelnumber;
+      if( gReverseDirection ) {
+        pixelnumber = (user_settings.led_count-1) - j;
+      } else {
+        pixelnumber = j;
+      }
+      leds[pixelnumber] = color;
+    }
+}
+
+void LED_march() {
+	int n, b, c, i;
+	
+	long mm = millis();
+	
+	
+	for(i = 0; i<user_settings.led_count; i++){
+        leds[i].nscale8(250);
+    }
+    
+        // Marching green <> orange
+        n = (mm/250)%10;
+        b = 10+((sin(mm/500.00)+1)*20.00);
+        c = 20+((sin(mm/5000.00)+1)*33);
+        for(i = 0; i<user_settings.led_count; i++){
+            if(i%10 == n){
+                leds[i] = CHSV( c, 255, 150);
+            }
+		}
+        
+}
+
+void random_LED_flashes() {
+	long mm = millis();
+	int i;
+	
+	for(i = 0; i<user_settings.led_count; i++){
+        leds[i].nscale8(250);
+    }
+    
+		
+	randomSeed(mm);
+	for(i = 0; i<user_settings.led_count; i++){
+		if(random8(20) == 0){
+			leds[i] = CHSV( 25, 255, 100);
+		}
+	}
+
+}
+
+void sinelon()
+{
+  static uint8_t gHue = 0; // rotating "base color" used by many of the patterns
+
+  gHue++;  
+	
+  // a colored dot sweeping back and forth, with fading trails
+  fadeToBlackBy( leds, user_settings.led_count, 20);
+  int pos = beatsin16(13,0,user_settings.led_count);
+  leds[pos] += CHSV( gHue, 255, 192);
+}
+
+
+
+void juggle() {
+  // eight colored dots, weaving in and out of sync with each other
+  fadeToBlackBy( leds, user_settings.led_count, 20);
+  byte dothue = 0;
+  for( int i = 0; i < 4; i++) {
+    leds[beatsin16( i+7, 0, user_settings.led_count-1 )] |= CHSV(dothue, 200, 255);
+    dothue += 64;
+  }
 }
 
 

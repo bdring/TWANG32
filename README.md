@@ -3,6 +3,8 @@ An ESP32 based, 1D, LED strip, dungeon crawler. inspired by Line Wobbler by Robi
 
 This was ported from the [TWANG fork](https://github.com/bdring/TWANG) by bdring of [Buildlog.net Blog](http://www.buildlog.net/blog?s=twang)
 
+[![Youtube Video](http://www.buildlog.net/blog/wp-content/uploads/2018/05/vid_thumb.png)](https://www.youtube.com/watch?v=RXpfa-ZvUMA)
+
 ![TWANG LED Game](http://www.buildlog.net/blog/wp-content/uploads/2018/01/20180111_130909-1.jpg?s=200)
 
 ## Why ESP32?
@@ -31,8 +33,12 @@ This was ported from the [TWANG fork](https://github.com/bdring/TWANG) by bdring
 
 ![](http://www.buildlog.net/blog/wp-content/uploads/2018/03/20180328_122254.jpg)
 
-## Coming Soon:
+## TO DO List:
 
+<<<<<<< HEAD
+- Wireless features~~
+  - 2 Player features by linking controllers. TBD
+=======
 -  Setting
   -  I want to figure out a way to have the LED count be set via the web server. I often bring several length LED strings to an event because I don't know which size is most appropriate. A last minute recompile is not a good solution.
 -  Wireless features~~
@@ -46,7 +52,18 @@ This was ported from the [TWANG fork](https://github.com/bdring/TWANG) by bdring
   - More robust.
   - Integrated audio amplifier.
 - Python (it might be fun to make a Python version)
+>>>>>>> origin/master
 
+- Digitized Audio
+  - Currently the port uses the same square wave tones of the the Arduino version.
+  - I want to convert to digitized high quality sound effects.
+  - Possibly mix multiple sounds so things like lava and movement sound good at the same time.
+
+- Better looking mobile web interface (looks more like a web app)
+
+- Python (it might be fun to make a Python version)
+
+  **BTW:** Since you have red this far... If you want to contribute, contact me and I might be able to get you some free or discounted hardware.
 
 ## Required libraries:
 * [FastLED](http://fastled.io/)
@@ -61,12 +78,12 @@ This was ported from the [TWANG fork](https://github.com/bdring/TWANG) by bdring
 
 See [Buildlog.net Blog](http://www.buildlog.net/blog?s=twang) for more details.
 
-Super easy to use kits and ready to play units will be available on Tindie soon.
+Super easy to use kits and ready to play units [are available on Tindie](https://www.tindie.com/products/33366583/twang32-led-strip-game/).
 
 ![TWANG 32 Controller](http://www.buildlog.net/blog/wp-content/uploads/2018/03/20180319_080636.jpg)
 
 ## Enclosure
-They will be on Thingiverse soon.
+[The STL files are here](http://www.buildlog.net/blog/wp-content/uploads/2018/04/twang32_stl.zip).
 
 ![TWANG32](http://www.buildlog.net/blog/wp-content/uploads/2018/03/twang32_enclosure.jpg)
 
@@ -118,4 +135,8 @@ They all call different functions and variables to setup the level. Each one is 
 * speed: The direction and speed of the travel. Negative moves to base and positive moves towards exit. Must be less than +/- max player speed.
 
 **spawnBoss();** (only one, don't edit boss level)
+<<<<<<< HEAD
 * There are no parameters for a boss, they always spawn in the same place and have 3 lives. Tweak the values of Boss.h to modify
+=======
+* There are no parameters for a boss, they always spawn in the same place and have 3 lives. Tweak the values of Boss.h to modify
+>>>>>>> origin/master
