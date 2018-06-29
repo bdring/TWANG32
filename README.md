@@ -35,7 +35,6 @@ This was ported from the [TWANG fork](https://github.com/bdring/TWANG) by bdring
 
 ## TO DO List:
 
-<<<<<<< HEAD
 - Wireless features~~
   - 2 Player features by linking controllers. TBD
 =======
@@ -52,7 +51,6 @@ This was ported from the [TWANG fork](https://github.com/bdring/TWANG) by bdring
   - More robust.
   - Integrated audio amplifier.
 - Python (it might be fun to make a Python version)
->>>>>>> origin/master
 
 - Digitized Audio
   - Currently the port uses the same square wave tones of the the Arduino version.

@@ -14,7 +14,7 @@
 // LEDS
 #define NUM_LEDS        144
 #define MIN_LEDS				60
-#define MAX_LEDS				1000
+
 
 
 #define DEFAULT_BRIGHTNESS	150 
@@ -40,12 +40,9 @@ const uint8_t LIVES_PER_LEVEL = 3;      // default lives per level
 #define MAX_JOYSTICK_DEADZONE 12
 
 // AUDIO
-#define DEFAULT_VOLUME          180     // 0 to 255
+#define DEFAULT_VOLUME          20     // 0 to 255
 #define MIN_VOLUME							0
 #define MAX_VOLUME							255
-
-
-
 
 #define DAC_AUDIO_PIN 		25     // should be 25 or 26 only
 
@@ -122,6 +119,7 @@ void processSerial(char inChar)
 		switch(readBuffer[readIndex]){
 			case '?':
 				readIndex = 0;
+				show_game_stats();
 				show_settings_menu();
 				return;
 			break;
@@ -295,7 +293,10 @@ void show_settings_menu() {
 	
 	Serial.print("\r\nC=");	
 	Serial.print(user_settings.led_count);
-	Serial.println(" (LED Count 100-1000..forces restart)");
+	
+	Serial.print(" (LED Count 60-");
+	Serial.print(MAX_LEDS);
+	Serial.println(")");
 	
 	Serial.print("B=");	
 	Serial.print(user_settings.led_brightness);
@@ -303,7 +304,7 @@ void show_settings_menu() {
 	
 	Serial.print("S=");
 	Serial.print(user_settings.audio_volume);
-	Serial.println(" (Sound Volume 0-10)");
+	Serial.println(" (Sound Volume 0-255)");
 	
 	Serial.print("D=");
 	Serial.print(user_settings.joystick_deadzone);
@@ -325,7 +326,7 @@ void show_settings_menu() {
 
 void show_game_stats()
 {
-	Serial.println("\r\n ===== Play statistics ======");
+	Serial.println("\r\n===== Play statistics ======");
 	Serial.print("Games played: ");Serial.println(user_settings.games_played);
 	if (user_settings.games_played > 0)	{
 		Serial.print("Average Score: ");Serial.println(user_settings.total_points / user_settings.games_played);
@@ -367,15 +368,9 @@ void settings_eeprom_read()	{
 
 void settings_eeprom_write() {		
 
-	Serial.println("Settings write...");
-
 	sound_pause(); // prevent interrupt from causing crash	
 
-	
-	
 	EEPROM.begin(EEPROM_SIZE);
-	
-	Serial.println("EEPROM open for write...");
 	
 	uint8_t temp[sizeof(user_settings)];	
 	memcpy(temp, (uint8_t*)&user_settings, sizeof(user_settings));  	
@@ -385,8 +380,7 @@ void settings_eeprom_write() {
 		EEPROM.write(i, temp[i]);
 	}			
 	
-	EEPROM.commit();
-	
+	EEPROM.commit();	
 	EEPROM.end();
 	
 	sound_resume(); // restore sound interrupt

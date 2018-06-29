@@ -54,9 +54,15 @@ void sendStatsPage(WiFiClient client) {
 	
 	client.print("<table>");
 	
-	client.print("<tr><td>LED Count (60-1000)</td><td><form><input type='number' name='C' value='"); 
+	
+	client.print("<tr><td>");	
+	client.print("LED Count (60-");
+  client.print(MAX_LEDS); 
+  client.print(")</td><td><form><input type='number' name='C' value='"); 	
 	client.print(user_settings.led_count);
-	client.print ("' min='60' max='1000'><input type='submit'></form></td></tr>");
+	client.print ("' min='60' max='");
+	client.print (MAX_LEDS);
+	client.print ("'><input type='submit'></form></td></tr>");
 	
 	client.print("<tr><td>Brightness (10-255)</td><td><form><input type='number' name='B' value='"); 
 	client.print(user_settings.led_brightness);

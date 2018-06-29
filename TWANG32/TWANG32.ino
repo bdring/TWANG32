@@ -9,17 +9,27 @@
 	It was inspired by Robin Baumgarten's Line Wobbler Game
 	
 	Recent Changes
-	- JOYSTICK_DEBUG was left on...turned it off
-	- Web page fields now have type='number' so they bring up a number keyboard
-	- Refresh the brightness when it changes.
-	- More Screen Savers
-	- Better looking reset after gameover
-	- Better looking restart after boss kill
-	- Updated readme with video and latest info
+	- Updated to move FastLEDshow to core 0
+	Fixed Neopixel
+	  - Used latest FastLED library..added compile check
+		- Updated to move FastLEDshow to core 0
+		- Reduced MAX_LEDS on Neopixel
+		- Move some defines to a separate config.h file to make them accessible to other files
+	- Changed volume typo on serial port settings menu	
 
+	Project TODO
+		- Make the strip type configurable via serial and wifi
+	
+		
+	Usage Notes:
+		- Changes to LED strip and other hardware are in config.h
+		- Change the strip type to what you are using and compile/load firmware
+		- Use Serial port or Wifi to set your strip length.	
 */
 
-#define VERSION "2018-03-31"
+// 
+
+#define VERSION "2018-06-28"
 
 #include <FastLED.h>
 #include<Wire.h>
@@ -27,6 +37,7 @@
 #include "RunningMedian.h"
 
 // twang files
+#include "config.h"
 #include "twang_mpu.h"
 #include "Enemy.h"
 #include "Particle.h"
@@ -39,33 +50,13 @@
 #include "settings.h"
 #include "wifi_ap.h"
 
-
-#define DATA_PIN        16
-#define CLOCK_PIN       17
-
-#define VIRTUAL_LED_COUNT 1000
-
-// what type of LED Strip....uncomment only one
-#define USE_APA102
-//#define USE_NEOPIXEL
-
-#ifdef USE_APA102
-  #define LED_TYPE        APA102
-  #define LED_COLOR_ORDER      BGR // typically this will be the order, but switch it if not
-  #define CONVEYOR_BRIGHTNES 8
-  #define LAVA_OFF_BRIGHTNESS 4
-#endif
-
-#ifdef USE_NEOPIXEL
-	#define CONVEYOR_BRIGHTNES 40  // low neopixel values are nearly off, they need a higher value
-	#define LAVA_OFF_BRIGHTNESS 15
+#if defined(FASTLED_VERSION) && (FASTLED_VERSION < 3001000)
+	#error "Requires FastLED 3.1 or later; check github for latest code."
 #endif
 
 
 
-//#define BRIGHTNESS           150
 #define DIRECTION            1
-#define MIN_REDRAW_INTERVAL  16    // Min redraw interval (ms) 33 = 30fps / 16 = 63fps
 #define USE_GRAVITY          0     // 0/1 use gravity (LED strip going up wall)
 #define BEND_POINT           550   // 0/1000 point at which the LED strip goes up the wall
 
@@ -75,8 +66,6 @@ int levelNumber = 0;
 
 #define TIMEOUT              20000  // time until screen saver in milliseconds
 
-
-
 int joystickTilt = 0;              // Stores the angle of the joystick
 int joystickWobble = 0;            // Stores the max amount of acceleration (wobble)
 
@@ -85,7 +74,7 @@ int joystickWobble = 0;            // Stores the max amount of acceleration (wob
 int attack_width = DEFAULT_ATTACK_WIDTH;     
 #define ATTACK_DURATION     500    // Duration of a wobble attack (ms)
 long attackMillis = 0;             // Time the attack started
-bool attacking = 0;                // Is the attack in progress?
+bool attacking = 0;                // Is the attack in progress?   
 #define BOSS_WIDTH          40
 
 // TODO all animation durations should be defined rather than literals 
@@ -161,33 +150,90 @@ bool lastLevel = false;
 
 int score = 0;
 
+#define FASTLED_SHOW_CORE 0  // -- The core to run FastLED.show()
+
+// -- Task handles for use in the notifications
+static TaskHandle_t FastLEDshowTaskHandle = 0;
+static TaskHandle_t userTaskHandle = 0;
+
+/** show() for ESP32
+ *  Call this function instead of FastLED.show(). It signals core 0 to issue a show, 
+ *  then waits for a notification that it is done.
+ */
+void FastLEDshowESP32()
+{
+    if (userTaskHandle == 0) {
+        // -- Store the handle of the current task, so that the show task can
+        //    notify it when it's done
+        userTaskHandle = xTaskGetCurrentTaskHandle();
+
+        // -- Trigger the show task
+        xTaskNotifyGive(FastLEDshowTaskHandle);
+
+        // -- Wait to be notified that it's done
+        const TickType_t xMaxBlockTime = pdMS_TO_TICKS( 200 );
+        ulTaskNotifyTake(pdTRUE, xMaxBlockTime);
+        userTaskHandle = 0;
+    }
+}
+
+/** show Task
+ *  This function runs on core 0 and just waits for requests to call FastLED.show()
+ */
+void FastLEDshowTask(void *pvParameters)
+{
+    // -- Run forever...
+    for(;;) {
+        // -- Wait for the trigger
+        ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+
+        // -- Do the show (synchronously)
+        FastLED.show();
+
+        // -- Notify the calling task
+        xTaskNotifyGive(userTaskHandle);
+    }
+}
+
 
 void setup() {
 	Serial.begin(115200);
-	Serial.print("\r\nTWANG32 VERSION: "); Serial.println(VERSION);
+	Serial.print("\r\nTWANG32 VERSION: "); Serial.println(VERSION);	
 	
-	settings_init();	
+	settings_init();	// load the user settings from EEPROM
 	
 	Wire.begin();
 	accelgyro.initialize();
+	
+#ifdef USE_NEOPIXEL
+  Serial.print("\r\nCompiled for WS2812B (Neopixel) LEDs");
+  FastLED.addLeds<LED_TYPE, DATA_PIN>(leds, MAX_LEDS);
+#endif
 
-	FastLED.addLeds<LED_TYPE, DATA_PIN, CLOCK_PIN, LED_COLOR_ORDER>(leds, VIRTUAL_LED_COUNT);
+#ifdef USE_APA102
+  Serial.print("\r\nCompiled for APA102 (Dotstar) LEDs");
+  FastLED.addLeds<LED_TYPE, DATA_PIN, CLOCK_PIN, LED_COLOR_ORDER>(leds, MAX_LEDS);
+#endif
+ 
 	FastLED.setBrightness(user_settings.led_brightness);
 	FastLED.setDither(1);
+	
+	// -- Create the ESP32 FastLED show task
+  xTaskCreatePinnedToCore(FastLEDshowTask, "FastLEDshowTask", 2048, NULL, 2, &FastLEDshowTaskHandle, FASTLED_SHOW_CORE); 
 
 	sound_init(DAC_AUDIO_PIN);
 	
-	ap_setup();		
+	ap_setup();
 
 	stage = STARTUP;
 	stageStartTime = millis();
 	lives = user_settings.lives_per_level;
+	
 }
 
 void loop() {
   long mm = millis();
-  int brightness = 0;
-  
+  int brightness = 0;  
     
   ap_client_check(); // check for web client
   checkSerialInput();
@@ -206,6 +252,8 @@ void loop() {
 
   if (mm - previousMillis >= MIN_REDRAW_INTERVAL) {
       getInput(); 
+
+      
       
       long frameTimer = mm;
       previousMillis = mm;
@@ -218,11 +266,13 @@ void loop() {
                 stage = WIN;
             }
         }else{
-            if(lastInputTime+TIMEOUT < mm){
-        
+            if(lastInputTime+TIMEOUT < mm){        
                 stage = SCREENSAVER;
             }
         }
+
+
+        
         if(stage == SCREENSAVER){
             screenSaverTick();    
         }else if(stage == STARTUP){
@@ -249,7 +299,8 @@ void loop() {
             playerPosition += playerPositionModifier;
             if(!attacking){
 								SFXtilt(joystickTilt);
-                int moveAmount = (joystickTilt/6.0);
+                //int moveAmount = (joystickTilt/6.0);  // 6.0 is ideal at 16ms interval (6.0 / (16.0 / MIN_REDRAW_INTERVAL))
+								int moveAmount = (joystickTilt/(6.0));  // 6.0 is ideal at 16ms interval 
                 if(DIRECTION) moveAmount = -moveAmount;
                 moveAmount = constrain(moveAmount, -MAX_PLAYER_SPEED, MAX_PLAYER_SPEED);
 								
@@ -310,9 +361,10 @@ void loop() {
 						lives = user_settings.lives_per_level;						
 						
 						}          
-         }
+         }        
 
-      FastLED.show();
+      //FastLED.show();
+			FastLEDshowESP32();
 
   }
 
@@ -658,8 +710,6 @@ void tickStartup(long mm)
   
 }
 
-
-
 void tickEnemies(){
     for(int i = 0; i<ENEMY_COUNT; i++){
         if(enemyPool[i].Alive()){
@@ -747,6 +797,7 @@ void tickSpawners(){
 void tickLava(){
 	int A, B, p, i, brightness, flicker;
 	long mm = millis();
+	
 	Lava LP;
 	for(i = 0; i<LAVA_COUNT; i++){        
 		LP = lavaPool[i];
@@ -759,8 +810,8 @@ void tickLava(){
 					LP._lastOn = mm;
 				}
 				for(p = A; p<= B; p++){
-					flicker = random8(3);
-					leds[p] = CRGB(3+flicker, (3+flicker)/1.5, 0);
+					flicker = random8(LAVA_OFF_BRIGHTNESS);
+					leds[p] = CRGB(LAVA_OFF_BRIGHTNESS+flicker, (LAVA_OFF_BRIGHTNESS+flicker)/1.5, 0);
 				}
 			}else if(LP._state == Lava::ON){
 				if(LP._lastOn + LP._ontime < mm){
@@ -769,12 +820,10 @@ void tickLava(){
 				}
 				for(p = A; p<= B; p++){
 					if(random8(30) < 29)
-						leds[p] = CRGB(150, 0, 0);
+					leds[p] = CRGB(150, 0, 0);
 					else
-						leds[p] = CRGB(180, 100, 0);
-				}
-				//if (random8(30) > 3)
-				//sound(380 + random8(200), MAX_VOLUME / 2); // scary lava noise
+					leds[p] = CRGB(180, 100, 0);
+				}				
 			}
 		}
 		lavaPool[i] = LP;
@@ -824,7 +873,7 @@ void tickConveyors(){
                 if(speed < 0) 
 					n = (led + (m/100)) % levels;
 				
-				b = map(n, 5, 0, 0, CONVEYOR_BRIGHTNES);
+				b = map(n, 5, 0, 0, CONVEYOR_BRIGHTNESS);
                 if(b > 0) 
 					leds[led] = CRGB(0, 0, b);
             }
