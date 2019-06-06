@@ -34,8 +34,9 @@
 #define VIRTUAL_LED_COUNT 1000  
 
 // what type of LED Strip....uncomment to define only one of these
-#define USE_APA102
-//#define USE_NEOPIXEL
+//#define USE_APA102
+
+.#define USE_NEOPIXEL
 
 // Check to make sure LED choice was done right
 #if !defined(USE_NEOPIXEL) && !defined(USE_APA102)
