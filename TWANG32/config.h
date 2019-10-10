@@ -64,6 +64,8 @@
 	#define MIN_REDRAW_INTERVAL  	1000.0 / 60.0    // divide by frames per second..if you tweak adjust player speed
 #endif
 
-
+// Comment or remove the next #define to disable the /metrics endpoint on the HTTP server.
+// This endpoint provides the Twang32 stats for ingestion via Prometheus.
+#define ENABLE_PROMETHEUS_METRICS_ENDPOINT
 
 #endif
