@@ -39,12 +39,12 @@
 // twang files
 #include "config.h"
 #include "twang_mpu.h"
-#include "Enemy.h"
-#include "Particle.h"
-#include "Spawner.h"
-#include "Lava.h"
-#include "Boss.h"
-#include "Conveyor.h"
+#include "enemy.h"
+#include "particle.h"
+#include "spawner.h"
+#include "lava.h"
+#include "boss.h"
+#include "conveyor.h"
 #include "iSin.h"
 #include "sound.h"
 #include "settings.h"
@@ -419,12 +419,14 @@ void loadLevel(){
 			activate: The delay in milliseconds before the first enemy
 			
 	Lava: You can create 4 pools of lava.
-		spawnLava(left, right, ontime, offtime, offset, state);
+		spawnLava(left, right, ontime, offtime, offset, state, grow, flow);
 			left: the lower end of the lava pool
 			right: the upper end of the lava pool
 			ontime: How long the lave stays on.
 			offset: the delay before the first switch
 			state: does it start on or off
+			grow: This specifies the rate of growth. Use 0 for no growth. Reasonable growth is 0.1 to 0.5
+			flow: This specifies the rate/direction of flow. Reasonable numbers are 0.2 to 0.8 
 	
 	Conveyor: You can create 2 conveyors.
 		spawnConveyor(startPoint, endPoint, direction)
@@ -450,25 +452,36 @@ void loadLevel(){
 		break;
 	case 1:
 		// Slow moving enemy			
-		spawnEnemy(900, 0, 1, 0);				
+		spawnEnemy(900, 0, 1, 0);	
 		break;
-	case 2:
+	case 2:	
 		// Spawning enemies at exit every 2 seconds		
 		spawnPool[0].Spawn(1000, 3000, 2, 0, 0);
 		break;
 	case 3:
 		// Lava intro
-		spawnLava(400, 490, 2000, 2000, 0, Lava::OFF);
+		spawnLava(400, 490, 2000, 2000, 0, Lava::OFF, 0, 0);
 		spawnEnemy(350, 0, 1, 0);
 		spawnPool[0].Spawn(1000, 5500, 3, 0, 0);
-		
-		break;
+		break;		
 	case 4:
-		// Sin enemy				
-		spawnEnemy(700, 1, 7, 275);
-		spawnEnemy(500, 1, 5, 250);
+	    // intro to moving lava (down)
+		spawnLava(400, 490, 2000, 2000, 0, Lava::OFF, 0, -0.5);
+		spawnEnemy(350, 0, 1, 0);
+		spawnPool[0].Spawn(1000, 5500, 3, 0, 0);
 		break;
-	case 5:
+	case 5:		
+		// lava spreading
+		spawnLava(400, 450, 2000, 2000, 0, Lava::OFF, 0.25, 0);
+		spawnEnemy(350, 0, 1, 0);
+		spawnPool[0].Spawn(1000, 5500, 3, 0, 0);	
+		break;
+	case 6:	
+		// Sin wave enemy				
+		spawnEnemy(700, 1, 7, 275);
+		spawnEnemy(500, 1, 5, 250);	
+		break;
+	case 7:
 		// Sin enemy swarm
 		spawnEnemy(700, 1, 7, 275);
 		spawnEnemy(500, 1, 5, 250);
@@ -477,15 +490,21 @@ void loadLevel(){
 		spawnEnemy(800, 1, 5, 350);
 		
 		spawnEnemy(400, 1, 7, 150);
-		spawnEnemy(450, 1, 5, 400);
-		
+		spawnEnemy(450, 1, 5, 400);		
+		break;	
+    case 8:
+		// lava moving up
+		playerPosition = 200;
+		spawnLava(10, 180, 2000, 2000, 0, Lava::OFF, 0, 0.5);
+		spawnEnemy(350, 0, 1, 0);
+		spawnPool[0].Spawn(1000, 5500, 3, 0, 0);
 		break;
-	case 6:
+	case 9:
 		// Conveyor
 		spawnConveyor(100, 600, -6);
 		spawnEnemy(800, 0, 0, 0);
 		break;
-	case 7:
+	case 10:
 		// Conveyor of enemies
 		spawnConveyor(50, 1000, 6);
 		spawnEnemy(300, 0, 0, 0);
@@ -496,30 +515,36 @@ void loadLevel(){
 		spawnEnemy(800, 0, 0, 0);
 		spawnEnemy(900, 0, 0, 0);
 		break;
-	case 8:   // spawn train;		
+	case 11:
+		// lava spread and fall
+		spawnLava(400, 450, 2000, 2000, 0, Lava::OFF, 0.2, -0.5);
+		spawnEnemy(350, 0, 1, 0);
+		spawnPool[0].Spawn(1000, 5500, 3, 0, 0);
+		break;
+	case 12:   // spawn train;		
 		spawnPool[0].Spawn(900, 1300, 2, 0, 0);					
 		break;
-	case 9:   // spawn train skinny attack width;
+	case 13:   // spawn train skinny attack width;
 		attack_width = 32;
 		spawnPool[0].Spawn(900, 1800, 2, 0, 0);
 		break;
-	case 10:  // evil fast split spawner
+	case 14:  // evil fast split spawner
 		spawnPool[0].Spawn(550, 1500, 2, 0, 0);
 		spawnPool[1].Spawn(550, 1500, 2, 1, 0);
 		break;
-	case 11: // split spawner with exit blocking lava
+	case 15: // split spawner with exit blocking lava
 		spawnPool[0].Spawn(500, 1200, 2, 0, 0);
 		spawnPool[1].Spawn(500, 1200, 2, 1, 0);		
-		spawnLava(900, 950, 2200, 800, 2000, Lava::OFF);
+		spawnLava(900, 950, 2200, 800, 2000, Lava::OFF, 0, 0);
 		break;
-	case 12:
+	case 16:
 		// Lava run
-		spawnLava(195, 300, 2000, 2000, 0, Lava::OFF);
-		spawnLava(400, 500, 2000, 2000, 0, Lava::OFF);
-		spawnLava(600, 700, 2000, 2000, 0, Lava::OFF);
+		spawnLava(195, 300, 2000, 2000, 0, Lava::OFF, 0, 0);
+		spawnLava(400, 500, 2000, 2000, 0, Lava::OFF, 0, 0);
+		spawnLava(600, 700, 2000, 2000, 0, Lava::OFF, 0, 0);
 		spawnPool[0].Spawn(1000, 3800, 4, 0, 0);
 		break;
-	case 13:
+	case 17:
 		// Sin enemy #2 practice (slow conveyor)
 		spawnEnemy(700, 1, 7, 275);
 		spawnEnemy(500, 1, 5, 250);
@@ -527,7 +552,7 @@ void loadLevel(){
 		spawnPool[1].Spawn(0, 5500, 5, 1, 10000);
 		spawnConveyor(100, 900, -4);
 		break;
-	case 14:
+	case 18:
 		// Sin enemy #2 (fast conveyor)
 		spawnEnemy(800, 1, 7, 275);
 		spawnEnemy(700, 1, 7, 275);
@@ -536,7 +561,7 @@ void loadLevel(){
 		spawnPool[1].Spawn(0, 5500, 5, 1, 10000);
 		spawnConveyor(100, 900, -6);
 		break;
-	case 15: // (don't edit last level)
+	case 19: // (don't edit last level)
 		// Boss this should always be the last level			
 		spawnBoss();
 		break;
@@ -577,10 +602,10 @@ void spawnEnemy(int pos, int dir, int speed, int wobble){
     }
 }
 
-void spawnLava(int left, int right, int ontime, int offtime, int offset, int state){
+void spawnLava(int left, int right, int ontime, int offtime, int offset, int state, float grow, float flow){
     for(int i = 0; i<LAVA_COUNT; i++){
         if(!lavaPool[i].Alive()){
-            lavaPool[i].Spawn(left, right, ontime, offtime, offset, state);
+            lavaPool[i].Spawn(left, right, ontime, offtime, offset, state, grow, flow);
             return;
         }
     }
@@ -800,8 +825,9 @@ void tickLava(){
 	
 	Lava LP;
 	for(i = 0; i<LAVA_COUNT; i++){        
-		LP = lavaPool[i];
+		LP = lavaPool[i];		
 		if(LP.Alive()){
+			LP.Update(); // for grow and flow
 			A = getLED(LP._left);
 			B = getLED(LP._right);
 			if(LP._state == Lava::OFF){
@@ -1073,7 +1099,7 @@ bool inLava(int pos){
     for(i = 0; i<LAVA_COUNT; i++){
         LP = lavaPool[i];
         if(LP.Alive() && LP._state == Lava::ON){
-            if(LP._left < pos && LP._right > pos) return true;
+            if(LP._left <= pos && LP._right > pos) return true;
         }
     }
     return false;

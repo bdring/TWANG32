@@ -34,9 +34,9 @@
 #define VIRTUAL_LED_COUNT 1000  
 
 // what type of LED Strip....uncomment to define only one of these
-//#define USE_APA102
+#define USE_APA102
 
-.#define USE_NEOPIXEL
+//#define USE_NEOPIXEL
 
 // Check to make sure LED choice was done right
 #if !defined(USE_NEOPIXEL) && !defined(USE_APA102)
@@ -53,7 +53,7 @@
   #define CONVEYOR_BRIGHTNESS 	8
   #define LAVA_OFF_BRIGHTNESS 	4
 	#define MAX_LEDS   						VIRTUAL_LED_COUNT // these LEDS can handle the max
-	#define MIN_REDRAW_INTERVAL  	1000.0 / 60.0    // divide by frames per second..if you tweak adjust player speed
+	#define MIN_REDRAW_INTERVAL  	1000.0 / 60.0    // divide by frames per second..if you tweak, adjust player speed
 #endif
 
 #ifdef USE_NEOPIXEL
