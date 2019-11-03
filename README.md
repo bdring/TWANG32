@@ -20,7 +20,7 @@ This was ported from the [TWANG fork](https://github.com/bdring/TWANG) by bdring
 - All of the Arduino version game features are functional.
 - The game now has a WiFi access port to get game stats. Connect a smartphone or computer to see them.
   - **SSID:** TWANG_AP
-  - **Password:** esp32rocks
+  - **Password:** 12345666
   - **URL:** 192.168.4.1
 - You can update these settings over WiFi
   - LED Brightness
