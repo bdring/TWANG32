@@ -1197,7 +1197,6 @@ void getInput(){
 // ---------------------------------
 
 /*
-/*
    This is used sweep across (up or down) a frequency range for a specified duration.
    A sin based warble is added to the frequency. This function is meant to be called
    on each frame to adjust the frequency in sync with an animation
