@@ -1,8 +1,8 @@
 #include <WiFi.h>
 #include "settings.h"
 
-const char* ssid       = "TWANG_AP";
-const char* passphrase = "esp32rocks";
+const char* ssid     = "TWANG_AP";
+const char* passphrase = "12345666";
 
 WiFiServer server(80);
 
@@ -16,20 +16,28 @@ enum PAGE_TO_SEND
 };
 
 void ap_setup() {
-	bool ret;
 
-	/*
-	 * Set up an access point
-	 * @param ssid          Pointer to the SSID (max 63 char).
-	 * @param passphrase    (for WPA2 min 8 char, for open use NULL)
-	 * @param channel       WiFi channel number, 1 - 13.
-	 * @param ssid_hidden   Network cloaking (0 = broadcast SSID, 1 = hide SSID)
-	 */
-	ret = WiFi.softAP(ssid, passphrase, 2, 0);
+    bool ret;
+    
+    
 
-	//Serial.println("\r\nWiFi AP online ...");
-	server.begin();
-}
+  /*
+   * Set up an access point
+   * @param ssid          Pointer to the SSID (max 63 char).
+   * @param passphrase    (for WPA2 min 8 char, for open use NULL)
+   * @param channel       WiFi channel number, 1 - 13.
+   * @param ssid_hidden   Network cloaking (0 = broadcast SSID, 1 = hide SSID)
+   */
+    ret = WiFi.softAP(ssid, passphrase, 2, 0);
+    server.begin();
+	
+    Serial.print("\r\nWiFi SSID: ");
+	Serial.println(ssid);
+	Serial.print("WiFi Password: ");
+	Serial.println(passphrase);
+	Serial.println("Web Server Address: http://192.168.4.1");
+	
+	}
 
 void sendStatsPage(WiFiClient client) {
 	// HTTP headers always start with a response code (e.g. HTTP/1.1 200 OK)

@@ -20,16 +20,15 @@ This was ported from the [TWANG fork](https://github.com/bdring/TWANG) by bdring
 - All of the Arduino version game features are functional.
 - The game now has a WiFi access port to get game stats. Connect a smartphone or computer to see them.
   - **SSID:** TWANG_AP
-  - **Password:** esp32rocks
+  - **Password:** 12345666
   - **URL:** 192.168.4.1
 - You can update these settings over WiFi
+  - LED Count
   - LED Brightness
   - Audio Volume
   - Joystick Deadzone (removes drift)
   - Attack Threshold (twang sensitivity)
   - Lives Per Level
-
-
 
 ![](http://www.buildlog.net/blog/wp-content/uploads/2018/03/20180328_122254.jpg)
 
@@ -38,30 +37,15 @@ This was ported from the [TWANG fork](https://github.com/bdring/TWANG) by bdring
 - Wireless features~~
   - 2 Player features by linking controllers. TBD
 =======
--  Setting
-  -  I want to figure out a way to have the LED count be set via the web server. I often bring several length LED strings to an event because I don't know which size is most appropriate. A last minute recompile is not a good solution.
--  Wireless features~~
-  - 2 Player features by linking controllers. TBD
+-  Settings:
+  - Change strip type.
 -  Digitized Audio
   - Currently the port uses the same square wave tones of the the Arduino version.
   - I want to convert to digitized high quality sound effects.
   - Possibly mix multiple sounds so things like lava and movement sound good at the same time.
--  Custom PCB
-  - Make wiring easier.
-  - More robust.
-  - Integrated audio amplifier.
-- Python (it might be fun to make a Python version)
-
-- Digitized Audio
-  - Currently the port uses the same square wave tones of the the Arduino version.
-  - I want to convert to digitized high quality sound effects.
-  - Possibly mix multiple sounds so things like lava and movement sound good at the same time.
-
 - Better looking mobile web interface (looks more like a web app)
 
-- Python (it might be fun to make a Python version)
-
-  **BTW:** Since you have red this far... If you want to contribute, contact me and I might be able to get you some free or discounted hardware.
+**BTW:** Since you have red this far... If you want to contribute, contact me and I might be able to get you some free or discounted hardware.
 
 ## Required libraries:
 * [FastLED](http://fastled.io/)
@@ -127,6 +111,8 @@ They all call different functions and variables to setup the level. Each one is 
 * ontime: How long (ms) the lava is ON for
 * offtime: How long the lava is ON for
 * offset: How long (ms) after the level starts before the lava turns on, use this to create patterns with multiple lavas
+* grow: This specifies the rate of growth. Use 0 for no growth. Reasonable growth is 0.1 to 0.5
+* flow: This specifies the rate/direction of flow. Reasonable numbers are 0.2 to 0.8 
 
 **spawnConveyor(startPoint, endPoint, speed);** (2 conveyors max)
 * startPoint, endPoint: Same as lava
