@@ -1099,7 +1099,7 @@ bool inLava(int pos){
     for(i = 0; i<LAVA_COUNT; i++){
         LP = lavaPool[i];
         if(LP.Alive() && LP._state == Lava::ON){
-            if(LP._left <= pos && LP._right > pos) return true;
+            if(LP._left <= pos && LP._right >= pos) return true;
         }
     }
     return false;
