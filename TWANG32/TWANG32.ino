@@ -290,7 +290,7 @@ void loop() {
             if(attacking && attackMillis+ATTACK_DURATION < mm) attacking = 0;
 
             // If not attacking, check if they should be
-            if(!attacking && joystickWobble > user_settings.attack_threshold){
+            if(!attacking && joystickWobble >= user_settings.attack_threshold){
                 attackMillis = mm;
                 attacking = 1;
             }
