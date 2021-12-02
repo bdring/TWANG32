@@ -108,7 +108,7 @@ Enemy enemyPool[ENEMY_COUNT] = {
 };
 
 
-#define PARTICLE_COUNT 40
+#define PARTICLE_COUNT 100
 Particle particlePool[PARTICLE_COUNT] = {
     Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle()
 };
@@ -967,12 +967,12 @@ void tickBossKilled(long mm) // boss funeral
 }
 
 void tickDie(long mm) { // a short bright explosion...particles persist after it.
-	const int duration = 100; // milliseconds
-	const int width = 10;     // half width of the explosion
+	const int duration = 200; // milliseconds
+	const int width = 20;     // half width of the explosion
 
 	if(stageStartTime+duration > mm) {// Spread red from player position up and down the width
 	
-		int brightness = map((mm-stageStartTime), 0, duration, 255, 50); // this allows a fade from white to red
+		int brightness = map((mm-stageStartTime), 0, duration, 255, 150); // this allows a fade from white to red
 		
 		// fill up
 		int n = _max(map(((mm-stageStartTime)), 0, duration, getLED(playerPosition), getLED(playerPosition)+width), 0);
@@ -1127,22 +1127,19 @@ void save_game_stats(bool bossKill)
 // ---------------------------------
 void screenSaverTick(){
     long mm = millis();
-    int mode = (mm/30000)%5;
+    int mode = (mm/30000)%4;
   
 	SFXcomplete(); // turn off sound...play testing showed this to be a problem
 
 	if (mode == 0) {
-		LED_march();
+		Fire2012();		
 	}
-	else if (mode == 1) {
-		random_LED_flashes();
-	}
-	else if (mode == 2)
+	else if (mode == 1)
 		sinelon();
-	else if (mode == 3)
+	else if (mode == 2)
 		juggle();
 	else {
-		Fire2012();
+		random_LED_flashes();
 	}
 	
 }
