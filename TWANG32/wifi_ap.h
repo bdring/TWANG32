@@ -2,7 +2,7 @@
 #include "settings.h"
 
 const char* ssid     = "TWANG_AP";
-const char* passphrase = "12345666";
+const char* passphrase = "12345678";
 
 WiFiServer server(80);
 
