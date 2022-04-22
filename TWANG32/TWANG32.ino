@@ -9,6 +9,7 @@
 	It was inspired by Robin Baumgarten's Line Wobbler Game
 	
 	Recent Changes
+  - Added a "WallSaver of > 85 degrees for 2 seconds goto screensaver (For magnets on wall mount)" // CP OrangeMakers
 	- Updated to move FastLEDshow to core 0
 	Fixed Neopixel
 	  - Used latest FastLED library..added compile check
@@ -32,7 +33,7 @@
 #define VERSION "2018-06-28"
 
 #include <FastLED.h>
-#include<Wire.h>
+#include <Wire.h>
 #include "Arduino.h"
 #include "RunningMedian.h"
 
@@ -55,6 +56,10 @@
 #endif
 
 
+// Wall Saver
+long beenOnWallFor = 0;            // Timer to check if its on 90 degrees
+#define WALL_TIMEOUT         2000  // For how long should it be 90 degrees before it shuts down
+#define WALL_ANGLE           -85   // At what angle should it start countdown
 
 #define DIRECTION            1
 #define USE_GRAVITY          0     // 0/1 use gravity (LED strip going up wall)
@@ -195,6 +200,20 @@ void FastLEDshowTask(void *pvParameters)
     }
 }
 
+// Provides a way to stop the game when you put the joystick at > X degrees for X seconds 
+ 
+void checkWall(long mm) {
+  if(joystickTilt > WALL_ANGLE) {
+    beenOnWallFor = mm;
+  }
+  
+  if(mm - beenOnWallFor >= WALL_TIMEOUT ) {
+    if(stage != SCREENSAVER){
+      stage = SCREENSAVER;
+    }
+  }
+}
+
 
 void setup() {
 	Serial.begin(115200);
@@ -234,7 +253,9 @@ void setup() {
 void loop() {
   long mm = millis();
   int brightness = 0;  
-    
+
+  checkWall(mm); // Check if hanging on the wall
+
   ap_client_check(); // check for web client
   checkSerialInput();
 
@@ -260,7 +281,7 @@ void loop() {
 
       if(abs(joystickTilt) > user_settings.joystick_deadzone){
             lastInputTime = mm;
-            if(stage == SCREENSAVER){
+            if(stage == SCREENSAVER & joystickTilt > -25){
                 levelNumber = -1;
                 stageStartTime = mm;
                 stage = WIN;
