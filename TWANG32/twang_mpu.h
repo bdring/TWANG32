@@ -24,7 +24,7 @@ void Twang_MPU::initialize()
 {
 	Wire.beginTransmission(MPU_ADDR);
 	Wire.write(PWR_MGMT_1);  // PWR_MGMT_1 register
-	Wire.write(0);     // set to zero (wakes up the MPU-6050)
+	Wire.write(1);     // wakes up the MPU-6050
 	Wire.endTransmission(true);
 }
 

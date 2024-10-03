@@ -165,7 +165,7 @@ void ap_client_check(){
 				// you're starting a new line
 				currentLineIsBlank = true;
 
-				if (strstr(linebuf,"GET /?") > 0)
+				if (strstr(linebuf,"GET /?") > (char *)0)
 				{
 					String line = String(linebuf);
 

@@ -29,10 +29,10 @@
 
 // 
 
-#define VERSION "2018-06-28"
+#define VERSION "2024-10-03"
 
 #include <FastLED.h>
-#include<Wire.h>
+#include <Wire.h>
 #include "Arduino.h"
 #include "RunningMedian.h"
 

@@ -13,9 +13,7 @@
 #include "esp32-hal-timer.h";
 
 #define ESP32_F_CPU         80000000  // the speed of the processor
-#define AUDIO_INTERRUPT_PRESCALER   80 
-#define SOUND_TIMER_NO 0
-//#define AUDIO_PIN 25
+#define AUDIO_INTERRUPT_PRESCALER   80
 #define MIN_FREQ 20
 #define MAX_FREQ 16000
 
@@ -31,12 +29,10 @@ void soundOff();
 
 int dac_pin;
 
-
-
 void IRAM_ATTR onSoundTimer() 
 {    
   if (sound_on) {    
-			dacWrite(dac_pin, (sound_wave_high?sound_volume:0));
+	dacWrite(dac_pin, (sound_wave_high?sound_volume:0));
       sound_wave_high = ! sound_wave_high;
    
   }
@@ -44,16 +40,16 @@ void IRAM_ATTR onSoundTimer()
     dacWrite(dac_pin, 0);
 }
 
+
 void sound_init(int pin){  // pin must be a DAC pin number !! (typically 25 or 26)
   dac_pin = pin;
 	sound_on = false;
 	pinMode(dac_pin, OUTPUT);
 	sound_volume = 0;
-	
-	sndTimer = timerBegin(SOUND_TIMER_NO, AUDIO_INTERRUPT_PRESCALER, true);
-  timerAttachInterrupt(sndTimer, &onSoundTimer, true);          
-  timerAlarmWrite(sndTimer, ESP32_F_CPU/AUDIO_INTERRUPT_PRESCALER/MIN_FREQ, true); // lower timer freq
-  timerAlarmEnable(sndTimer);	
+
+	sndTimer = timerBegin(1000000);
+	timerAttachInterrupt(sndTimer, &onSoundTimer);          
+  timerAlarm(sndTimer, ESP32_F_CPU/AUDIO_INTERRUPT_PRESCALER/MIN_FREQ, true, 0); // lower timer freq
 }
 
 void sound_pause() // this prevents the interrupt from firing ... use during eeprom write
@@ -78,22 +74,15 @@ bool sound(uint16_t freq, uint8_t volume){
 	}
 	sound_on = true;
 	sound_volume = volume;
-  timerAlarmWrite(sndTimer, ESP32_F_CPU/AUDIO_INTERRUPT_PRESCALER/(freq * 2), true);
+  timerAlarm(sndTimer, ESP32_F_CPU/AUDIO_INTERRUPT_PRESCALER/(freq * 2), true, 0);
 	return true;	
 }
 
 void soundOff(){  
  sound_on = false;
  sound_volume = 0;
- timerAlarmWrite(sndTimer, ESP32_F_CPU/AUDIO_INTERRUPT_PRESCALER/(MIN_FREQ), true);  // lower timer freq
+ timerAlarm(sndTimer, ESP32_F_CPU/AUDIO_INTERRUPT_PRESCALER/(MIN_FREQ), true, 0);  // lower timer freq
 }
 
 
-
 #endif
-
-
-
-
-
-

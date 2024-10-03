@@ -1,6 +1,8 @@
 # TWANG32
 An ESP32 based, 1D, LED strip, dungeon crawler. inspired by Line Wobbler by Robin B
 
+This version compiles with ESP32-Arduino 3.x.
+
 This was ported from the [TWANG fork](https://github.com/bdring/TWANG) by bdring of [Buildlog.net Blog](http://www.buildlog.net/blog?s=twang)
 
 [![Youtube Video](http://www.buildlog.net/blog/wp-content/uploads/2018/05/vid_thumb.png)](https://www.youtube.com/watch?v=RXpfa-ZvUMA)
@@ -119,8 +121,4 @@ They all call different functions and variables to setup the level. Each one is 
 * speed: The direction and speed of the travel. Negative moves to base and positive moves towards exit. Must be less than +/- max player speed.
 
 **spawnBoss();** (only one, don't edit boss level)
-<<<<<<< HEAD
 * There are no parameters for a boss, they always spawn in the same place and have 3 lives. Tweak the values of Boss.h to modify
-=======
-* There are no parameters for a boss, they always spawn in the same place and have 3 lives. Tweak the values of Boss.h to modify
->>>>>>> origin/master
