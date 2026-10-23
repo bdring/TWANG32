@@ -1,0 +1,30 @@
+name: build
+on: [push, pull_request, workflow_dispatch]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Engine tests (native, sanitizers)
+        run: bash tests/run.sh
+      - name: WebAssembly engine
+        run: bash wasm/build.sh
+      - name: Web UI bundle
+        run: python3 web/build.py
+      - name: Install arduino-cli and the ESP32 core
+        run: |
+          curl -fsSL https://downloads.arduino.cc/arduino-cli/arduino-cli_latest_Linux_64bit.tar.gz | tar xz
+          ./arduino-cli config init
+          ./arduino-cli config set board_manager.additional_urls https://espressif.github.io/arduino-esp32/package_esp32_index.json
+          ./arduino-cli core update-index
+          ./arduino-cli core install esp32:esp32
+          ./arduino-cli lib install FastLED "ESP Async WebServer" "Async TCP"
+      - name: Firmware (APA102 + DAC, the stock board)
+        run: ./arduino-cli compile -b esp32:esp32:esp32:PartitionScheme=min_spiffs --export-binaries TWANG32
+      - uses: actions/upload-artifact@v4
+        with:
+          name: twang-next
+          path: |
+            TWANG32/build/esp32.esp32.esp32/TWANG32.ino.bin
+            TWANG32/build/esp32.esp32.esp32/TWANG32.ino.merged.bin
+            build/web/index.html

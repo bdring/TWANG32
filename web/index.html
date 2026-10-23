@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1d1a22">
+<meta name="description" content="TWANG Next: a one-dimensional dungeon crawler on an LED strip. Play it, build levels, tune the device.">
+<title>TWANG Next</title>
+<style>
+/*@@FONTS@@*/
+/*@@CSS@@*/
+</style>
+</head>
+<body>
+<header class="top">
+  <h1 class="wordmark">TWANG<small>Next</small></h1>
+  <div class="conn" id="conn" aria-live="polite"><i></i><span>Starting</span></div>
+</header>
+
+<div class="stripwrap">
+  <div class="strip">
+    <canvas id="strip" aria-label="The LED strip"></canvas>
+    <span class="badge" id="stripBadge"></span>
+    <button class="start-audio" id="startAudio" hidden>Tap to turn on sound</button>
+  </div>
+  <div class="hud" aria-live="off">
+    <div class="lname" id="hudName"></div>
+    <span class="lives" id="hudLives" aria-label="Lives"></span>
+    <span class="combo" id="hudCombo"></span>
+    <span class="score" id="hudScore">0</span>
+    <span class="stage" id="hudStage"></span>
+  </div>
+</div>
+
+<nav class="tabs" id="tabs" role="tablist" aria-label="Sections"></nav>
+
+<main>
+  <section class="view" id="v-play" role="tabpanel"></section>
+  <section class="view" id="v-levels" role="tabpanel" hidden></section>
+  <section class="view" id="v-sound" role="tabpanel" hidden></section>
+  <section class="view" id="v-setup" role="tabpanel" hidden></section>
+  <section class="view" id="v-stats" role="tabpanel" hidden></section>
+</main>
+
+<div class="pad" id="pad">
+  <div class="spring" id="spring" aria-label="Tilt: drag left or right"><div class="knob"></div></div>
+  <button class="twang" id="twangBtn" aria-label="Twang">twang</button>
+</div>
+
+<dialog id="nameDlg">
+  <h3>New high score</h3>
+  <p><strong id="nameScore">0</strong> points. Who is this?</p>
+  <label class="field"><span>Name</span><input type="text" id="nameInput" maxlength="12" autocomplete="nickname"></label>
+  <div class="row" style="margin-top:14px">
+    <button class="btn primary" id="nameSave">Save score</button>
+    <button class="btn ghost" id="nameSkip">Skip</button>
+  </div>
+</dialog>
+
+<dialog id="askDlg">
+  <p id="askMsg" style="margin:0 0 16px"></p>
+  <div class="row">
+    <button class="btn primary" id="askOk">Continue</button>
+    <button class="btn ghost" id="askCancel">Cancel</button>
+  </div>
+</dialog>
+
+<script>/*@@DATA@@*/</script>
+<script>
+(() => {
+/*@@APP@@*/
+/*@@EDITOR@@*/
+window.TWANG = { app, Editor };  // handy from the browser console
+app.boot().catch((e) => {
+  document.body.prepend(Object.assign(document.createElement('p'), { className: 'notice bad', textContent: 'TWANG could not start: ' + e.message }));
+  console.error(e);
+});
+})();
+</script>
+</body>
+</html>

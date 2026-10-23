@@ -1,0 +1,14 @@
+{
+  "name": "twang-next",
+  "private": true,
+  "description": "Build tools for TWANG Next: web UI bundle, WebAssembly engine, virtual device",
+  "type": "module",
+  "scripts": {
+    "build": "bash wasm/build.sh && python3 web/build.py",
+    "test": "bash tests/run.sh && python3 tests/ui_smoke.py",
+    "virtual": "node tools/virtual-device.mjs"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}

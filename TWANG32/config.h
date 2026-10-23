@@ -1,71 +1,74 @@
 /*
-	TWANG32 - An ESP32 port of TWANG
-	(c) B. Dring 3/2018
-	License: Creative Commons 4.0 Attribution - Share Alike	
-	
-	TWANG was originally created by Critters
-	https://github.com/Critters/TWANG
-	
-	Basic hardware definitions
-	
-	Light Strip Notes:
-	
-	Noepixel / WS2812
-		- Low Cost
-		- You might already have a strip.
-		- No Clock Line - This means a fixed and relatively slow data rate and only shorter strips can be used
-		- Poor Dynamic Range - The low end of brightness is basically not visible
-	Dotstar (Highly recommended)
-	  - Higher Cost
-		- Higher speed - Longer strips can be used.
-		- Great dynamic range, so lower levels and more colors can be used.
-	
+  TWANG Next - hardware configuration.
 
+  This is the only file you should need to touch to match your build.
+  Everything else (LED count, brightness, joystick tuning, volume, Wi-Fi)
+  is set from the web page at http://192.168.4.1 and saved on the device.
+
+  Defaults match the stock TWANG32 board by Bart Dring:
+    APA102 strip on 16/17, MPU6050 on I2C 21/22, PAM8403 amp on DAC GPIO25.
 */
+#pragma once
 
-#ifndef CONFIG_H
-	#define CONFIG_H
-
-#define DATA_PIN        16
-#define CLOCK_PIN       17
-
-/* Game is rendered to this and scaled down to your strip.
- This allows level definitions to work on all strip lengths  */
-#define VIRTUAL_LED_COUNT 1000  
-
-// what type of LED Strip....uncomment to define only one of these
+// ------------------------------------------------------------------ LED strip
+// Pick exactly one. APA102 (DotStar) is strongly recommended: it has a clock line,
+// so it runs fast with long strips and has far better low-brightness range.
 #define USE_APA102
+// #define USE_NEOPIXEL   // WS2812B / SK6812
 
-//#define USE_NEOPIXEL
+#define LED_DATA_PIN 16
+#define LED_CLOCK_PIN 17  // APA102 only
 
-// Check to make sure LED choice was done right
-#if !defined(USE_NEOPIXEL) && !defined(USE_APA102)
-	#error "You must have USE_APA102 or USE_NEOPIXEL defined in config.h"
-#endif
-
-#if defined(USE_NEOPIXEL) && defined(USE_APA102)
-	#error "Both USE_APA102 and USE_NEOPIXEL are defined in config.h. Only one can be used"
-#endif
-
+// If the player is not green, the exit not blue and enemies not red, change this.
+// APA102 strips are usually BGR, WS2812B strips usually GRB.
 #ifdef USE_APA102
-  #define LED_TYPE        			APA102
-  #define LED_COLOR_ORDER      	BGR // typically this will be the order, but switch it if not
-  #define CONVEYOR_BRIGHTNESS 	8
-  #define LAVA_OFF_BRIGHTNESS 	4
-	#define MAX_LEDS   						VIRTUAL_LED_COUNT // these LEDS can handle the max
-	#define MIN_REDRAW_INTERVAL  	1000.0 / 60.0    // divide by frames per second..if you tweak, adjust player speed
+#define LED_COLOR_ORDER BGR
+#define MAX_LEDS 1000
+#define DEFAULT_LED_COUNT 144
+#define DEFAULT_CONVEYOR_BRIGHTNESS 8
+#define DEFAULT_LAVA_OFF_BRIGHTNESS 4
 #endif
-
 #ifdef USE_NEOPIXEL
-  #define LED_TYPE        		 	NEOPIXEL
-	#define CONVEYOR_BRIGHTNESS 	40  // low neopixel values are nearly off, Neopixels need a higher value
-	#define LAVA_OFF_BRIGHTNESS  	15   // low neopixel values are nearly off, Neopixels need a higher value
-	#define MAX_LEDS 						 	288  // Neopixels cannot handle the framerate
-	#define MIN_REDRAW_INTERVAL  	1000.0 / 60.0    // divide by frames per second..if you tweak adjust player speed
+#define LED_COLOR_ORDER GRB
+#define MAX_LEDS 300  // WS2812 can't refresh more than this at 60 fps
+#define DEFAULT_LED_COUNT 144
+#define DEFAULT_CONVEYOR_BRIGHTNESS 40  // low NeoPixel values are nearly invisible
+#define DEFAULT_LAVA_OFF_BRIGHTNESS 15
 #endif
 
-// Comment or remove the next #define to disable the /metrics endpoint on the HTTP server.
-// This endpoint provides the Twang32 stats for ingestion via Prometheus.
-#define ENABLE_PROMETHEUS_METRICS_ENDPOINT
+// Current limit for the whole strip (mA at 5 V). FastLED dims frames that would
+// exceed it, which protects your power supply during the boss-kill rainbow.
+// Change it from the web page; this is just the default.
+#define DEFAULT_POWER_LIMIT_MA 2500
 
+// ------------------------------------------------------------------ joystick (MPU6050)
+#define I2C_SDA_PIN 21
+#define I2C_SCL_PIN 22
+
+// ------------------------------------------------------------------ audio
+// Pick exactly one.
+// AUDIO_OUT_DAC: the ESP32's 8-bit DAC on GPIO25 into a PAM8403 (stock board).
+// AUDIO_OUT_I2S: an I2S amplifier such as the MAX98357A. 16-bit, louder, cleaner:
+//                the single best upgrade for the new music. See docs/HARDWARE.md.
+#define AUDIO_OUT_DAC
+// #define AUDIO_OUT_I2S
+
+#define I2S_BCLK_PIN 26
+#define I2S_LRC_PIN 27
+#define I2S_DOUT_PIN 25
+
+#define AUDIO_SAMPLE_RATE 22050
+
+// ------------------------------------------------------------------ Wi-Fi defaults
+// Change these from the web page; they are only used until you do.
+#define DEFAULT_AP_NAME "TWANG"
+#define DEFAULT_AP_PASS "12345678"  // at least 8 characters, or "" for an open network
+#define DEFAULT_HOSTNAME "twang"    // also reachable as http://twang.local on your home network
+
+// ------------------------------------------------------------------ checks
+#if defined(USE_APA102) == defined(USE_NEOPIXEL)
+#error "config.h: define exactly one of USE_APA102 or USE_NEOPIXEL"
+#endif
+#if defined(AUDIO_OUT_DAC) == defined(AUDIO_OUT_I2S)
+#error "config.h: define exactly one of AUDIO_OUT_DAC or AUDIO_OUT_I2S"
 #endif

@@ -1,0 +1,500 @@
+{
+  "format": "twang-campaign",
+  "version": 1,
+  "name": "TWANG Next",
+  "levels": [
+  {
+    "id": "c00",
+    "name": "First Twang",
+    "safe": true,
+    "player": 200,
+    "tension": 10,
+    "music": "descent",
+    "enemies": [
+      {"pos": 1, "dir": -1, "speed": 0}
+    ]
+  },
+  {
+    "id": "c01",
+    "name": "Slow Burn",
+    "tension": 15,
+    "par": 12,
+    "enemies": [
+      {"pos": 900, "dir": -1, "speed": 1}
+    ]
+  },
+  {
+    "id": "c02",
+    "name": "Incoming",
+    "tension": 20,
+    "par": 15,
+    "spawners": [
+      {"pos": 1000, "rate": 3000, "speed": 2, "dir": -1, "delay": 0}
+    ]
+  },
+  {
+    "id": "c03",
+    "name": "Hot Floor",
+    "tension": 25,
+    "par": 15,
+    "lava": [
+      {"left": 400, "right": 490, "on": 2000, "off": 2000, "offset": 0}
+    ],
+    "enemies": [
+      {"pos": 350, "dir": -1, "speed": 1}
+    ],
+    "spawners": [
+      {"pos": 1000, "rate": 5500, "speed": 3, "dir": -1}
+    ]
+  },
+  {
+    "id": "c04",
+    "name": "Lava Slide",
+    "tension": 25,
+    "par": 15,
+    "lava": [
+      {"left": 400, "right": 490, "on": 2000, "off": 2000, "offset": 0, "flow": -0.5}
+    ],
+    "enemies": [
+      {"pos": 350, "dir": -1, "speed": 1}
+    ],
+    "spawners": [
+      {"pos": 1000, "rate": 5500, "speed": 3, "dir": -1}
+    ]
+  },
+  {
+    "id": "c05",
+    "name": "Spreading Fire",
+    "tension": 30,
+    "par": 15,
+    "lava": [
+      {"left": 400, "right": 450, "on": 2000, "off": 2000, "offset": 0, "grow": 0.25}
+    ],
+    "enemies": [
+      {"pos": 350, "dir": -1, "speed": 1}
+    ],
+    "spawners": [
+      {"pos": 1000, "rate": 5500, "speed": 3, "dir": -1}
+    ]
+  },
+  {
+    "id": "n01",
+    "name": "Gem Hunter",
+    "tension": 30,
+    "par": 15,
+    "note": "Gems are worth 50. One sits inside the lava - is it worth it?",
+    "lava": [
+      {"left": 500, "right": 560, "on": 1500, "off": 2500, "offset": 0}
+    ],
+    "enemies": [
+      {"pos": 720, "dir": -1, "speed": 0}
+    ],
+    "pickups": [
+      {"type": "gem", "pos": 300},
+      {"type": "gem", "pos": 530},
+      {"type": "gem", "pos": 860}
+    ]
+  },
+  {
+    "id": "c06",
+    "name": "Swing Time",
+    "tension": 30,
+    "par": 15,
+    "enemies": [
+      {"pos": 700, "dir": 1, "speed": 7, "wobble": 275},
+      {"pos": 500, "dir": 1, "speed": 5, "wobble": 250}
+    ]
+  },
+  {
+    "id": "c07",
+    "name": "Pendulum Swarm",
+    "tension": 40,
+    "par": 20,
+    "enemies": [
+      {"pos": 700, "dir": 1, "speed": 7, "wobble": 275},
+      {"pos": 500, "dir": 1, "speed": 5, "wobble": 250},
+      {"pos": 600, "dir": 1, "speed": 7, "wobble": 200},
+      {"pos": 800, "dir": 1, "speed": 5, "wobble": 350},
+      {"pos": 400, "dir": 1, "speed": 7, "wobble": 150},
+      {"pos": 450, "dir": 1, "speed": 5, "wobble": 400}
+    ]
+  },
+  {
+    "id": "n02",
+    "name": "Thick Skin",
+    "tension": 35,
+    "par": 15,
+    "note": "Magenta enemies are armored: the first twang knocks them back, the second kills.",
+    "enemies": [
+      {"pos": 600, "dir": -1, "speed": 0, "kind": "armored"},
+      {"pos": 920, "dir": -1, "speed": 1, "kind": "armored"}
+    ],
+    "pickups": [
+      {"type": "gem", "pos": 780}
+    ]
+  },
+  {
+    "id": "c08",
+    "name": "Rising Tide",
+    "player": 200,
+    "tension": 35,
+    "par": 15,
+    "lava": [
+      {"left": 10, "right": 180, "on": 2000, "off": 2000, "offset": 0, "flow": 0.5}
+    ],
+    "enemies": [
+      {"pos": 350, "dir": -1, "speed": 1}
+    ],
+    "spawners": [
+      {"pos": 1000, "rate": 5500, "speed": 3, "dir": -1}
+    ]
+  },
+  {
+    "id": "c09",
+    "name": "Treadmill",
+    "tension": 30,
+    "par": 15,
+    "conveyors": [
+      {"start": 100, "end": 600, "speed": -6}
+    ],
+    "enemies": [
+      {"pos": 800, "dir": -1, "speed": 0}
+    ]
+  },
+  {
+    "id": "c10",
+    "name": "Assembly Line",
+    "tension": 40,
+    "par": 15,
+    "conveyors": [
+      {"start": 50, "end": 1000, "speed": 6}
+    ],
+    "enemies": [
+      {"pos": 300},
+      {"pos": 400},
+      {"pos": 500},
+      {"pos": 600},
+      {"pos": 700},
+      {"pos": 800},
+      {"pos": 900}
+    ]
+  },
+  {
+    "id": "n03",
+    "name": "Black Ice",
+    "tension": 40,
+    "par": 15,
+    "note": "Ice keeps your momentum. You can twang while sliding.",
+    "zones": [
+      {"type": "ice", "start": 250, "end": 650}
+    ],
+    "enemies": [
+      {"pos": 470, "dir": -1, "speed": 0}
+    ],
+    "lava": [
+      {"left": 700, "right": 770, "on": 2000, "off": 2000, "offset": 0}
+    ],
+    "pickups": [
+      {"type": "gem", "pos": 600}
+    ]
+  },
+  {
+    "id": "n04",
+    "name": "Hunted",
+    "tension": 50,
+    "par": 18,
+    "note": "Pulsing orange chasers home in on you.",
+    "enemies": [
+      {"pos": 900, "dir": -1, "speed": 1, "kind": "chaser"}
+    ],
+    "spawners": [
+      {"pos": 1000, "rate": 7000, "speed": 1, "dir": -1, "delay": 4000, "kind": "chaser"}
+    ],
+    "lava": [
+      {"left": 400, "right": 450, "on": 2000, "off": 2000, "offset": 0}
+    ]
+  },
+  {
+    "id": "c11",
+    "name": "Sinking Spread",
+    "tension": 40,
+    "par": 15,
+    "lava": [
+      {"left": 400, "right": 450, "on": 2000, "off": 2000, "offset": 0, "grow": 0.2, "flow": -0.5}
+    ],
+    "enemies": [
+      {"pos": 350, "dir": -1, "speed": 1}
+    ],
+    "spawners": [
+      {"pos": 1000, "rate": 5500, "speed": 3, "dir": -1}
+    ]
+  },
+  {
+    "id": "c12",
+    "name": "The Train",
+    "tension": 45,
+    "par": 20,
+    "spawners": [
+      {"pos": 900, "rate": 1300, "speed": 2, "dir": -1}
+    ]
+  },
+  {
+    "id": "c13",
+    "name": "Needle Point",
+    "attackWidth": 32,
+    "tension": 50,
+    "par": 20,
+    "spawners": [
+      {"pos": 900, "rate": 1800, "speed": 2, "dir": -1}
+    ]
+  },
+  {
+    "id": "n05",
+    "name": "Shrapnel",
+    "tension": 50,
+    "par": 18,
+    "note": "Yellow splitters burst into two fragments further down the line.",
+    "enemies": [
+      {"pos": 450, "dir": -1, "speed": 0, "kind": "splitter"},
+      {"pos": 800, "dir": -1, "speed": 1, "kind": "splitter"}
+    ]
+  },
+  {
+    "id": "c14",
+    "name": "Split Decision",
+    "tension": 55,
+    "par": 20,
+    "spawners": [
+      {"pos": 550, "rate": 1500, "speed": 2, "dir": -1},
+      {"pos": 550, "rate": 1500, "speed": 2, "dir": 1}
+    ]
+  },
+  {
+    "id": "c15",
+    "name": "Locked Door",
+    "tension": 55,
+    "par": 20,
+    "spawners": [
+      {"pos": 500, "rate": 1200, "speed": 2, "dir": -1},
+      {"pos": 500, "rate": 1200, "speed": 2, "dir": 1}
+    ],
+    "lava": [
+      {"left": 900, "right": 950, "on": 2200, "off": 800, "offset": 2000}
+    ]
+  },
+  {
+    "id": "n06",
+    "name": "Lights Out",
+    "tension": 60,
+    "music": "abyss",
+    "par": 22,
+    "note": "In the dark you only see what is close to you. Burning lava glows faintly.",
+    "zones": [
+      {"type": "dark", "start": 150, "end": 950}
+    ],
+    "enemies": [
+      {"pos": 350, "dir": -1, "speed": 0},
+      {"pos": 620, "dir": -1, "speed": 1}
+    ],
+    "lava": [
+      {"left": 470, "right": 530, "on": 2000, "off": 2500, "offset": 0}
+    ],
+    "pickups": [
+      {"type": "gem", "pos": 800}
+    ]
+  },
+  {
+    "id": "c16",
+    "name": "Lava Run",
+    "tension": 55,
+    "par": 20,
+    "lava": [
+      {"left": 195, "right": 300, "on": 2000, "off": 2000, "offset": 0},
+      {"left": 400, "right": 500, "on": 2000, "off": 2000, "offset": 0},
+      {"left": 600, "right": 700, "on": 2000, "off": 2000, "offset": 0}
+    ],
+    "spawners": [
+      {"pos": 1000, "rate": 3800, "speed": 4, "dir": -1}
+    ]
+  },
+  {
+    "id": "n07",
+    "name": "Ghost Line",
+    "tension": 55,
+    "music": "abyss",
+    "par": 20,
+    "note": "Violet phantoms fade in and out. Faded, they pass through you - and your twang passes through them.",
+    "enemies": [
+      {"pos": 400, "dir": -1, "speed": 0, "kind": "phantom"},
+      {"pos": 650, "dir": -1, "speed": 1, "kind": "phantom"},
+      {"pos": 850, "dir": -1, "speed": 0, "kind": "phantom"},
+      {"pos": 950, "dir": -1, "speed": 0}
+    ]
+  },
+  {
+    "id": "c17",
+    "name": "Uphill",
+    "tension": 60,
+    "par": 25,
+    "enemies": [
+      {"pos": 700, "dir": 1, "speed": 7, "wobble": 275},
+      {"pos": 500, "dir": 1, "speed": 5, "wobble": 250}
+    ],
+    "spawners": [
+      {"pos": 1000, "rate": 5500, "speed": 4, "dir": -1, "delay": 3000},
+      {"pos": 0, "rate": 5500, "speed": 5, "dir": 1, "delay": 10000}
+    ],
+    "conveyors": [
+      {"start": 100, "end": 900, "speed": -4}
+    ]
+  },
+  {
+    "id": "c18",
+    "name": "Uphill Sprint",
+    "tension": 70,
+    "par": 25,
+    "enemies": [
+      {"pos": 800, "dir": 1, "speed": 7, "wobble": 275},
+      {"pos": 700, "dir": 1, "speed": 7, "wobble": 275},
+      {"pos": 500, "dir": 1, "speed": 5, "wobble": 250}
+    ],
+    "spawners": [
+      {"pos": 1000, "rate": 3000, "speed": 4, "dir": -1, "delay": 3000},
+      {"pos": 0, "rate": 5500, "speed": 5, "dir": 1, "delay": 10000}
+    ],
+    "conveyors": [
+      {"start": 100, "end": 900, "speed": -6}
+    ]
+  },
+  {
+    "id": "n08",
+    "name": "The Gauntlet",
+    "tension": 65,
+    "par": 35,
+    "note": "A long one. Grab the extra life and the checkpoint at the midpoint.",
+    "lava": [
+      {"left": 150, "right": 230, "on": 2000, "off": 2000, "offset": 0},
+      {"left": 300, "right": 370, "on": 2000, "off": 2000, "offset": 1000}
+    ],
+    "pickups": [
+      {"type": "life", "pos": 450},
+      {"type": "gem", "pos": 335}
+    ],
+    "checkpoints": [480],
+    "zones": [
+      {"type": "ice", "start": 520, "end": 640}
+    ],
+    "enemies": [
+      {"pos": 700, "dir": -1, "speed": 0, "kind": "armored"},
+      {"pos": 860, "dir": -1, "speed": 0, "kind": "splitter"}
+    ],
+    "spawners": [
+      {"pos": 1000, "rate": 6000, "speed": 1, "dir": -1, "delay": 2000, "kind": "chaser"}
+    ]
+  },
+  {
+    "id": "n09",
+    "name": "The Floor Is Lava",
+    "player": 120,
+    "tension": 90,
+    "music": "furnace",
+    "par": 30,
+    "note": "A wall of lava follows you up the strip. Keep moving.",
+    "lava": [
+      {"left": 2, "right": 70, "on": 60000, "off": 1000, "offset": 0, "startOn": true, "flow": 0.55}
+    ],
+    "conveyors": [
+      {"start": 550, "end": 650, "speed": -3}
+    ],
+    "enemies": [
+      {"pos": 300, "dir": -1, "speed": 0},
+      {"pos": 500, "dir": -1, "speed": 0, "kind": "armored"},
+      {"pos": 720, "dir": -1, "speed": 1},
+      {"pos": 860, "dir": -1, "speed": 0, "kind": "splitter"}
+    ]
+  },
+  {
+    "id": "c19",
+    "name": "The Warden",
+    "tension": 85,
+    "music": "reckoning",
+    "par": 40,
+    "boss": {"hp": 3, "positions": [800, 200, 600], "rates": [1800, 1600, 1000], "speed": 3, "width": 40}
+  },
+  {
+    "id": "n10",
+    "name": "Afterburn",
+    "tension": 75,
+    "music": "furnace",
+    "par": 30,
+    "spawners": [
+      {"pos": 1000, "rate": 2600, "speed": 3, "dir": -1, "delay": 0},
+      {"pos": 1000, "rate": 6000, "speed": 1, "dir": -1, "delay": 3000, "kind": "chaser"}
+    ],
+    "lava": [
+      {"left": 300, "right": 380, "on": 2000, "off": 1800, "offset": 0, "grow": 0.15}
+    ],
+    "conveyors": [
+      {"start": 450, "end": 800, "speed": -5}
+    ],
+    "pickups": [
+      {"type": "gem", "pos": 620}
+    ]
+  },
+  {
+    "id": "n11",
+    "name": "Phantom Pain",
+    "tension": 80,
+    "music": "abyss",
+    "par": 30,
+    "zones": [
+      {"type": "dark", "start": 100, "end": 900}
+    ],
+    "enemies": [
+      {"pos": 300, "dir": -1, "speed": 1, "kind": "phantom"},
+      {"pos": 500, "dir": -1, "speed": 1, "kind": "phantom"},
+      {"pos": 700, "dir": -1, "speed": 1, "kind": "phantom"},
+      {"pos": 860, "dir": -1, "speed": 0, "kind": "armored"}
+    ],
+    "checkpoints": [520]
+  },
+  {
+    "id": "n12",
+    "name": "Final Descent",
+    "tension": 85,
+    "par": 40,
+    "zones": [
+      {"type": "ice", "start": 150, "end": 300}
+    ],
+    "lava": [
+      {"left": 340, "right": 400, "on": 1800, "off": 2000, "offset": 0},
+      {"left": 700, "right": 760, "on": 2000, "off": 2000, "offset": 1000, "flow": -0.4}
+    ],
+    "enemies": [
+      {"pos": 450, "dir": -1, "speed": 0, "kind": "splitter"},
+      {"pos": 600, "dir": -1, "speed": 1, "kind": "armored"},
+      {"pos": 900, "dir": -1, "speed": 1, "kind": "chaser"}
+    ],
+    "checkpoints": [640],
+    "pickups": [
+      {"type": "gem", "pos": 380},
+      {"type": "life", "pos": 660}
+    ],
+    "spawners": [
+      {"pos": 1000, "rate": 4000, "speed": 3, "dir": -1, "delay": 0}
+    ]
+  },
+  {
+    "id": "n13",
+    "name": "The Hydra",
+    "tension": 100,
+    "music": "reckoning",
+    "par": 60,
+    "note": "Five hits. In its last phase it erupts - watch for the glow, strike between bursts.",
+    "pickups": [
+      {"type": "life", "pos": 100}
+    ],
+    "boss": {"hp": 5, "positions": [850, 300, 700, 450, 600], "rates": [1700, 1500, 1300, 1100, 900], "speed": 3, "width": 50, "rage": true}
+  }
+  ]
+}
